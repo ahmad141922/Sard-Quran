@@ -1,0 +1,470 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@font-face {
+  font-family: 'HafsSmart';
+  src: url('/fonts/HafsSmart_08.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Marhey';
+  src: url('/fonts/Marhey.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Childos';
+  src: url('/fonts/ChildosArabicDEMO-Light.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Patrick Hand';
+  src: url('/fonts/PatrickHand.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Canvas-safe composite: Arabic comes from Childos, while digits and Latin
+   punctuation come from Patrick Hand instead of Childos' blank demo glyphs. */
+@font-face {
+  font-family: 'Course Studio Hand';
+  src: url('/fonts/ChildosArabicDEMO-Light.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+0590-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Course Studio Hand';
+  src: url('/fonts/PatrickHand.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+0000-058F, U+0900-FB4F, U+FE00-FE6F, U+FF00-10FFFF;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Tajawal:wght@400;500;700&family=Kalam:wght@400;700&family=Amiri+Quran&display=swap');
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 84% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 21 90% 48%;
+    --secondary: 215 16% 47%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 24 95% 53%;
+    --radius: 0.75rem;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 84% 5%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 84% 5%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 18%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 24 95% 53%;
+  }
+
+  .cream {
+    --background: 42 60% 94%;
+    --foreground: 30 20% 15%;
+    --card: 42 55% 96%;
+    --card-foreground: 30 20% 15%;
+    --popover: 42 55% 96%;
+    --popover-foreground: 30 20% 15%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 25% 80%;
+    --secondary-foreground: 30 20% 15%;
+    --muted: 40 30% 90%;
+    --muted-foreground: 30 15% 45%;
+    --accent: 40 30% 88%;
+    --accent-foreground: 30 20% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 25% 85%;
+    --input: 40 25% 85%;
+    --ring: 24 95% 53%;
+  }
+
+  .blackboard {
+    --background: 150 30% 12%;
+    --foreground: 60 15% 92%;
+    --card: 150 25% 16%;
+    --card-foreground: 60 15% 92%;
+    --popover: 150 25% 16%;
+    --popover-foreground: 60 15% 92%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 20% 22%;
+    --secondary-foreground: 60 15% 92%;
+    --muted: 150 18% 20%;
+    --muted-foreground: 60 10% 70%;
+    --accent: 150 20% 24%;
+    --accent-foreground: 60 15% 92%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 15% 28%;
+    --input: 150 15% 28%;
+    --ring: 24 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Outfit', 'Tajawal', sans-serif;
+  }
+}
+
+/* Custom styled scrollbar for the top toolbar */
+.toolbar-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.toolbar-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 9999px;
+}
+.toolbar-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 9999px;
+}
+.toolbar-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
+}
+.toolbar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--muted));
+}
+
+/* Vertical styled scrollbar for the sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 9999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 9999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
+}
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--muted));
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes stickerPop {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 1; }
+  40% { transform: translate(-50%, -50%) scale(1.4) rotate(8deg); opacity: 1; }
+  60% { transform: translate(-50%, -50%) scale(0.9) rotate(-3deg); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
+}
+
+/* Pulse attention on download button when install CTA banner is visible */
+@keyframes cta-attention {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5); }
+  50% { box-shadow: 0 0 0 6px hsl(var(--primary) / 0); }
+}
+
+body[data-install-cta-visible="1"] .download-cta-target {
+  animation: cta-attention 1.5s ease-in-out infinite;
+  border-radius: 9999px;
+}
+
+/* Bouncing arrow pointing to download button */
+@keyframes cta-arrow-bounce {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-8px); opacity: 0.7; }
+}
+
+.cta-arrow-bounce {
+  animation: cta-arrow-bounce 1s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Embed Mode — when loaded inside an iframe with ?embed=1.
+   Hides chrome (install CTA, top-bar logo block, board tabs)
+   and removes scrollbars / outer padding for a clean canvas.
+   ───────────────────────────────────────────────────────────── */
+html.embed-mode,
+html.embed-mode body {
+  overflow: hidden;
+  background: hsl(var(--background));
+}
+
+/* Hide the install CTA banner + arrow inside iframes (no app installation in embed) */
+html.embed-mode [data-cta-banner],
+html.embed-mode [data-cta-arrow],
+html.embed-mode .install-cta-root,
+html.embed-mode .cta-arrow-bounce {
+  display: none !important;
+}
+
+/* Hide non-essential top-bar buttons in embed: install / support / logout / language toggle stay,
+   we only hide the very chrome-y "Go Home" since there's no parent route in iframe context. */
+html.embed-mode [data-embed-hide="true"] {
+  display: none !important;
+}
+
+/* Hide BoardTabs row in embed (single room context) */
+html.embed-mode [data-board-tabs] {
+  display: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Respect prefers-reduced-motion — disable animations/transitions
+   for users who request reduced motion (vestibular sensitivity).
+   ───────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ensure tap targets on touch devices meet the 44x44 WCAG target.
+   Applies only to interactive primitives marked with [data-a11y-tap]. */
+@media (pointer: coarse) {
+  [data-a11y-tap] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ── Mushaf page (facsimile viewer) ─────────────────────────────
+   The page is the publisher's own vector artwork. Only the transparent
+   ayah-polygon layer above it ever changes appearance; the Qur'anic glyphs
+   are never recoloured. */
+[data-mushaf-page] .ayahPolygon {
+  cursor: pointer;
+  fill: hsl(var(--primary));
+  fill-opacity: 0;
+  /* Slow enough that a verse *appears* rather than blinks into being, and the
+     colour is carried along with the opacity: uncovering swaps paper-white for
+     the marker's tint, and animating only one of the two flashes the other.
+     A tap keeps the old snap — see the hover rule. */
+  transition: fill-opacity 300ms ease-out, fill 300ms ease-out;
+}
+[data-mushaf-page] .ayahPolygon:hover {
+  fill-opacity: 0.07;
+  transition-duration: 120ms;
+}
+[data-mushaf-page] .ayahPolygon.is-selected {
+  fill-opacity: 0.16;
+}
+
+/* Reciting from memory: the ayah is covered, exactly and only where it sits.
+   The plate is black ink on white paper, so paper-white at full opacity hides
+   the words and nothing else — and because night mode inverts the whole page,
+   including this layer, the same fill comes out as dark paper there without a
+   second rule. Opaque, never blurred: a blur leaves the shape of the line, and
+   a memoriser reads shapes long before letters. */
+[data-mushaf-page] .ayahPolygon.is-covered {
+  fill: #ffffff;
+  fill-opacity: 1;
+  cursor: default;
+}
+[data-mushaf-page] .ayahPolygon.is-covered:hover {
+  fill-opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mushaf-page] .ayahPolygon { transition: none; }
+}
+
+/* Night mode for the page itself.
+   The plates are black ink on white paper, and no CSS colour can reach inside
+   them — so the whole page is inverted and its hues turned back, which reads
+   as ink-on-dark-paper. The polygon layer is inverted with it, so the
+   highlight is stated here in the value it must end up at, not the one it
+   starts from. */
+.dark [data-mushaf-page] > svg {
+  filter: invert(0.895) hue-rotate(180deg);
+}
+.dark [data-mushaf-page] .ayahPolygon.is-selected {
+  fill: #12706a;
+  fill-opacity: 0.5;
+}
+.dark [data-mushaf-page] .ayahPolygon:hover {
+  fill-opacity: 0.22;
+}
+
+/* The cover, again, after the night-mode rules above.
+
+   It has to be repeated here and not merely written once: the marker sits on a
+   covered ayah the moment the cover is switched on, and `.dark …is-selected`
+   comes later in this file and carries an extra class, so without this the
+   selection tint won and the one ayah about to be recited was the one showing
+   through. The plate is inverted whole in night mode, so paper-white lands as
+   dark paper — which is why the same fill serves both. */
+.dark [data-mushaf-page] .ayahPolygon.is-covered,
+.dark [data-mushaf-page] .ayahPolygon.is-covered:hover {
+  fill: #ffffff;
+  fill-opacity: 1;
+}
+
+/* ── حواف الشاشة: ما تحت شريط الحالة وشريط الإيماءات ──
+
+   A phone with an edge-to-edge window puts the page under its own bars, and
+   the first casualties are the two things this tool keeps pinned: the majlis
+   toolbar at the top and the note buttons at the bottom. The browser reports
+   how much room they take in `env(safe-area-inset-*)`, which is `0px`
+   everywhere else — a desktop, a laptop, a tablet in a browser tab — so these
+   are free to use unconditionally.
+
+   These go on a container that has no padding of its own — the majlis overlay
+   is `fixed inset-0` with none — so they add room rather than replace it. An
+   element that already has padding takes the inset inline instead, with
+   `max()`, so the design's own spacing survives a device reporting no inset:
+   `pt-[max(0.75rem,env(safe-area-inset-top))]`. */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.px-safe {
+  padding-inline-start: env(safe-area-inset-left, 0px);
+  padding-inline-end: env(safe-area-inset-right, 0px);
+}
+
+
+/* ── تقليب الصفحة ────────────────────────────────────────────────
+
+   A printed page does not fade in; it arrives from the side it was turned
+   from. So the new page slides in from the edge the reader pulled, and leans
+   a degree as it lands — enough to read as paper, short enough not to sit
+   between the reader and the next line.
+
+   The direction is stated by `data-turn` on the element, and the element is
+   keyed by page number so React remounts it and the animation runs again.
+   Distances are small and the curve is a decelerate: this is a page turning,
+   not a slide deck. */
+/* The muṣḥaf is turned right-to-left, so advancing drags the leaf rightwards
+   and the page that follows enters from the left. */
+@keyframes mushaf-turn-forward {
+  from { opacity: 0; transform: translate3d(-6%, 0, 0) rotate(-0.35deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mushaf-turn-back {
+  from { opacity: 0; transform: translate3d(6%, 0, 0) rotate(0.35deg); }
+  to   { opacity: 1; transform: none; }
+}
+[data-turn] {
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+[data-turn='forward'] { animation: mushaf-turn-forward 260ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+[data-turn='back']    { animation: mushaf-turn-back 260ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+/* A reader who asked their system for less motion gets the page, not the
+   turn. */
+@media (prefers-reduced-motion: reduce) {
+  [data-turn] { animation: none !important; will-change: auto; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Floating overlays over the canvas.
+   They are useful between strokes and in the way during one, so
+   they step aside while the pen is down and come straight back.
+   ───────────────────────────────────────────────────────────── */
+.board-float {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+body[data-drawing='1'] .board-float {
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-float {
+    transition: none;
+  }
+  body[data-drawing='1'] .board-float {
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Keyboard focus.
+   Every control in the board was reachable by keyboard and
+   invisible once reached — there was not one focus style in the
+   project. Only :focus-visible, so a pointer press stays quiet.
+   ───────────────────────────────────────────────────────────── */
+button:focus-visible,
+a:focus-visible,
+[role='menuitem']:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}

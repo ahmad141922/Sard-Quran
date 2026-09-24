@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ألوان شاشة إقلاع أندرويد ١٢ فصاعدًا. تقرؤها values-v31/styles.xml وحدها،
+  وما دونها يقرأ @drawable/splash كما كان.
+-->
+<resources>
+    <!-- أرضيّة الشاشة: نفس backgroundColor في capacitor.config.ts -->
+    <color name="splash_background">#fdf8ef</color>
+    <!-- دائرة الأيقونة: نفس كريم لوح الأيقونة في assets/icon.png -->
+    <color name="splash_icon_background">#fff7ed</color>
+</resources>

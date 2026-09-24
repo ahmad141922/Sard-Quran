@@ -1,0 +1,1450 @@
+<!doctype html>
+<!--
+  أداة السرد القرآني — صفحة التعريف
+  ────────────────────────────────────────────────────────────────────────
+  قبل النشر: ضع رابط الأداة في APP_URL ورابط المتجر في PLAY_URL أسفل
+  الصفحة (سطران)، فتُحدَّث كل أزرار الدعوة وشارات المتجر معًا. لا يوجد
+  رابط مُخترَع في هذا الملفّ.
+
+  الإنجليزية لاحقًا: كل النصّ هنا محتوى HTML عادي، والتنسيق كلّه بخصائص
+  منطقية (inline-start / inline-end) لا يمين ويسار، فنسخة `/en` تحتاج
+  ترجمة الملفّ وتبديل `lang` و`dir` فقط — لا إعادة تصميم.
+-->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="The Quran Recitation Tool — by Tajweedoo">أداة السرد القرآني — من تجويدوو</title>
+<meta name="description" content="أداة مجانية بالكامل تساعد الحافظ على سرد القرآن ومراجعته داخل مصحف حقيقي مطابق للطبعة، بخمس روايات: حفص وورش وقالون والدوري وشعبة. متاحة على Google Play ومن المتصفّح." data-en-content="A completely free tool that helps a memoriser recite and review the Quran inside a real mushaf that matches the printed edition, in five riwayat: Hafs, Warsh, Qalun, ad-Duri and Shu'bah. On Google Play and in the browser.">
+<!-- الأيقونة: ‎.ico‎ للقديم وللطلب التلقائيّ على /favicon.ico، وPNG
+     للحديث. وأيقونة iOS تُطلب من الجذر بلا رابط، فهي موضوعة هناك. -->
+<link rel="icon" href="/favicon.ico?v=3" sizes="any">
+<link rel="icon" type="image/png" href="assets/favicon-256.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0e5b4c">
+<meta property="og:title" content="أداة السرد القرآني — من تجويدوو" data-en-content="The Quran Recitation Tool — by Tajweedoo">
+<meta property="og:description" content="أداة تجعل مجلس السرد للقرآن أكثر حضورًا، وأقل انشغالًا بالتفاصيل." data-en-content="A tool that keeps a Quran recitation session present, and free of fussing over details.">
+<meta property="og:image" content="assets/sard-logo-v2.webp">
+<meta property="og:locale" content="ar_AR">
+
+<script>
+  /* الوضع قبل أوّل رسم: المحفوظ إن وُجد، وإلّا تفضيل النظام. يُكتب على
+     <html> فورًا لأن قراءة الصفحة تبدأ ببياض يخطف العين في غرفة معتمة. */
+  (function () {
+    var stored = null;
+    try { stored = localStorage.getItem('sard:landing-theme'); } catch (e) { /* وضع خاص */ }
+    var system = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = stored || (system ? 'dark' : 'light');
+
+    /* اللغة كذلك قبل أوّل رسم: الاتجاه والخطّ يُقرَّران من <html>، وتبديلهما
+       بعد الرسم يقلب الصفحة أمام القارئ. النصّ نفسه يُبدَّل في آخر الملفّ
+       حيث تكون العناصر موجودة. المفتاح هو مفتاح الأداة نفسه، فاختيارك هنا
+       يتبعك إلى /app دون أن تُسأل مرّتين. */
+    var lang = null;
+    try { lang = localStorage.getItem('sard_lang'); } catch (e) { /* وضع خاص */ }
+    if (lang !== 'ar' && lang !== 'en') {
+      lang = (navigator.language || 'ar').slice(0, 2) === 'ar' ? 'ar' : 'en';
+    }
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    /* بها وحدها تُخفي CSS عناصرَ الظهور بالتمرير: بلا جافاسكربت لا يختفي شيء. */
+    document.documentElement.classList.add('js');
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+
+<body>
+
+<a class="skip" href="#main" data-en="Skip to content">تخطَّ إلى المحتوى</a>
+
+<!--
+  ── تعريفات مرسومة تُستعمل أكثر من مرّة ──────────────────────────────
+  الأيقونات هنا مرّة واحدة، وتُستدعى في مواضعها بـ<use>. الملفّ لا يحمل
+  نسخة من علامة الصحّ سبعَ مرّات.
+-->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-check" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M8.3 12.2l2.5 2.5 4.9-5.4"></path>
+    </g>
+
+    <!-- علامات التواصل: خطّيّة بسُمك علامة الصحّ نفسه، فهي من عائلة أيقونات
+         الصفحة لا شاراتٍ ملوّنة مستوردة تنقض هدوء الذيل. -->
+    <g id="i-facebook" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+    </g>
+    <g id="i-instagram" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </g>
+    <g id="i-whatsapp" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.4-4.3a8.5 8.5 0 1 1 15.6-4.5z"></path>
+      <path d="M9.2 9c.2-.4.4-.4.6-.4h.5c.2 0 .4 0 .6.4l.6 1.3c.1.2 0 .4-.1.5l-.4.4c-.1.2-.2.3-.1.5.4.8 1.2 1.6 2 2 .2.1.4 0 .5-.1l.4-.4c.2-.2.3-.2.5-.1l1.3.6c.4.2.4.4.4.6v.5c0 .2 0 .4-.4.6-.4.2-.9.3-1.5.1-2-.6-3.9-2.5-4.5-4.5-.2-.6-.1-1.1.1-1.5z"></path>
+    </g>
+
+    <!-- تدرّجات مثلّث Google Play — هنا لا داخل الشارة، فهي تظهر مرّتين -->
+    <linearGradient id="pgA" x1="70%" y1="0%" x2="0%" y2="70%">
+      <stop offset="0%" stop-color="#00a0ff"/><stop offset="26%" stop-color="#00a1ff"/>
+      <stop offset="66%" stop-color="#00beff"/><stop offset="100%" stop-color="#00e3ff"/>
+    </linearGradient>
+    <linearGradient id="pgB" x1="100%" y1="50%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#ffe000"/><stop offset="41%" stop-color="#ffbd00"/>
+      <stop offset="78%" stop-color="#ffa500"/><stop offset="100%" stop-color="#ff9c00"/>
+    </linearGradient>
+    <linearGradient id="pgC" x1="86%" y1="18%" x2="-8%" y2="126%">
+      <stop offset="0%" stop-color="#ff3a44"/><stop offset="100%" stop-color="#c31162"/>
+    </linearGradient>
+    <linearGradient id="pgD" x1="-14%" y1="-12%" x2="66%" y2="94%">
+      <stop offset="0%" stop-color="#32a071"/><stop offset="46%" stop-color="#2da771"/>
+      <stop offset="100%" stop-color="#00e676"/>
+    </linearGradient>
+    <linearGradient id="wbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12705d"/><stop offset="100%" stop-color="#083b31"/>
+    </linearGradient>
+
+    <!-- علامتا الشارتين: تُعرَّفان مرّة وتُستدعيان بتخطيطَي اللغتين -->
+    <g id="play-mark">
+      <path fill="url(#pgA)" d="M.6.5C.3.8.1 1.3.1 1.9v17.6c0 .6.2 1.1.5 1.4l.1.1L10.5 11v-.2L.7.5H.6z"/>
+      <path fill="url(#pgB)" d="M13.8 14.3l-3.3-3.3v-.2l3.3-3.3.1.1 3.9 2.2c1.1.6 1.1 1.7 0 2.3l-3.9 2.2h-.1z"/>
+      <path fill="url(#pgC)" d="M13.9 14.2L10.5 10.9.6 20.8c.4.4 1 .4 1.7.1l11.6-6.7"/>
+      <path fill="url(#pgD)" d="M13.9 7.6L2.3.9C1.6.5 1 .6.6 1l9.9 9.9 3.4-3.3z"/>
+    </g>
+    <g id="web-mark" fill="none" stroke="#eafaf5" stroke-width="1.5"
+       stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="15" cy="15" r="14.2" transform="scale(.98)"/>
+      <path d="M.9 10.4h28.2M.9 19.6h28.2"/>
+      <path d="M15 .8c4 4.1 5.9 8.8 5.9 14.2S19 25.1 15 29.2C11 25.1 9.1 20.4 9.1 15S11 4.9 15 .8Z"/>
+    </g>
+    <!-- علامة أبل — تخطيطان للشارة كما في شارة Google Play -->
+    <path id="apple-mark" fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+  </defs>
+</svg>
+
+<header class="site-header" id="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#main">
+      <img src="assets/sard-logo-v2.webp?v=3" alt="" width="36" height="36">
+      <span class="brand-text">
+        <strong data-en="The Quran Recitation Tool">أداة السرد القرآني</strong>
+        <small data-en="One of Tajweedoo's tools">إحدى أدوات تجويدوو</small>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="#event" data-en="The day">المناسبة</a>
+      <a class="nav-new" href="#download" data-en="The app">التطبيق</a>
+      <a href="#riwayat" data-en="Riwayat">الروايات</a>
+      <a href="#how" data-en="How it works">كيف تعمل</a>
+      <a href="#faq" data-en="Questions">الأسئلة</a>
+    </nav>
+    <button class="lang-toggle" id="lang-toggle" type="button" aria-label="English" data-en-aria-label="العربية">
+      <span id="lang-label">English</span>
+    </button>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="تبديل الوضع الداكن" data-en-aria-label="Toggle dark mode">
+      <span class="theme-icon" aria-hidden>☾</span>
+    </button>
+    <a class="btn btn-primary btn-sm" data-cta href="#" data-en="Try it free">جرّب مجانًا</a>
+  </div>
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+</header>
+
+<main id="main">
+
+<!-- ── الهيرو ─────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-ambient" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+
+    <div class="hero-copy">
+      <p class="eyebrow">
+        <img src="assets/sard-day.webp" alt="" width="22" height="22" loading="lazy">
+        <span data-en="On World Quran Recitation Day">بمناسبة اليوم العالمي للسرد القرآني</span>
+      </p>
+
+      <h1 data-en="A tool that keeps a Quran recitation session present, and free of fussing over details.">أداة تجعل مجلس السرد للقرآن أكثر حضورًا، وأقل انشغالًا بالتفاصيل.</h1>
+
+      <p class="lede" data-en="The mushaf page exactly as it is in the edition you memorised from, and three taps to record what passed during the recitation. Not another digital Quran page — a tool built for recitation and review alone.">
+        صفحة المصحف كما هي في الطبعة التي تحفظ منها، وثلاث ضغطات تكفي لتسجيل
+        ما مرّ في السرد. ليست صفحة قرآن إلكترونية أخرى — أداة صُنعت للسرد
+        والمراجعة وحدهما.
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" data-cta href="#" data-en="Try the Quran Recitation Tool free">جرّب أداة السرد القرآني مجانًا</a>
+        <!-- الثانوي يعرض ولا يكرّر: من لم يقرّر بعد يريد أن يرى المخرَج. -->
+        <a class="btn btn-ghost btn-lg" href="#certificate" data-en="See the certificate">نموذج الشهادة</a>
+      </div>
+
+      <!-- ثلاث حقائق تسبق السؤال لا تجيب عنه بعد وقوعه -->
+      <ul class="hero-trust">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Completely free">مجانية بالكامل</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="No account, no card">بلا حساب ولا بطاقة</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Works offline">تعمل بلا إنترنت</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="On Google Play and in the browser">على Google Play وعلى المتصفّح</span></li>
+      </ul>
+
+      <ul class="riwaya-chips" aria-label="الروايات المدعومة" data-en-aria-label="Supported riwayat">
+        <li data-en="Hafs from 'Asim">حفص عن عاصم</li>
+        <li data-en="Shu'bah from 'Asim">شعبة عن عاصم</li>
+        <li data-en="Warsh from Nafi'">ورش عن نافع</li>
+        <li data-en="Qalun from Nafi'">قالون عن نافع</li>
+        <li data-en="Ad-Duri from Abu 'Amr">الدوري عن أبي عمرو</li>
+        <li class="soon" data-en="more to follow">والمزيد تباعًا</li>
+      </ul>
+
+    </div>
+
+    <!--
+      المصحف هو البطل: هذه صفحة حقيقية من الأصل المتجهي الذي تعرضه الأداة
+      نفسها (مجمّع الملك فهد، رواية حفص)، داخل إطار يحاكي واجهة المجلس.
+    -->
+    <div class="hero-shot">
+      <div class="device" role="img" aria-label="لقطة من أداة السرد: صفحة المصحف وأزرار الملاحظة" data-en-aria-label="A screenshot of the tool: the mushaf page and the note buttons">
+        <div class="device-bar">
+          <span class="dot-x">✕</span>
+          <span class="lock-chip"><span class="lock">🔒</span> <span data-en="Hafs from 'Asim">حفص عن عاصم</span></span>
+          <span class="bar-icons">◐ ⏸</span>
+        </div>
+        <div class="device-strip">
+          <span data-en="Al-Baqarah 1">البقرة 1</span>
+          <span class="strip-meta">0% · 0:00</span>
+        </div>
+        <div class="device-page">
+          <img src="assets/page-hafs-002.svg" alt="صفحة من المصحف داخل الأداة" data-en-alt="A mushaf page inside the tool" width="235" height="235">
+        </div>
+        <div class="device-notes">
+          <span class="note note-tajweed" data-en="Tajweed note">تنبيه تجويد</span>
+          <span class="note note-memory" data-en="Memory slip">خطأ حفظ</span>
+          <span class="note note-hesitation" data-en="Hesitation">تردد</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!--
+  ── المناسبة ───────────────────────────────────────────────────────
+  ثاني ما يُرى بعد الهيرو عمدًا: أكثر من يفتح الصفحة هذه الأيام جاء من أجل
+  المناسبة، فتأجيلها إلى ما بعد ستّ شاشات كان يدفنها. ولها لوحها الداكن
+  وحدها — لا نقش خافت — لأنها الشيء الوحيد في الصفحة الذي ينتهي بتاريخ.
+-->
+<section class="event" id="event">
+  <!-- نجمة ثمانية مكرَّرة، خافتةً جدًّا: هي زخرفة الشهادة نفسها، فاللوحان
+       يُقرآن من عائلة واحدة. ولأنها أصلًا ملفّ الأركان لا صورة جديدة. -->
+  <div class="event-pattern" aria-hidden="true"></div>
+
+  <div class="wrap event-inner">
+    <div class="event-marks">
+      <img class="event-emblem" src="assets/sard-day.webp"
+           alt="شعار اليوم العالمي للسرد القرآني" data-en-alt="World Quran Recitation Day logo" width="240" height="240" loading="lazy">
+    </div>
+
+    <div class="event-copy">
+      <p class="event-date">
+        <span data-en="30 August 2026">٣٠ أغسطس ٢٠٢٦</span>
+        <span class="event-hijri" data-en="17 Rabi' al-Awwal 1448 AH">١٧ ربيع الأول ١٤٤٨هـ</span>
+      </p>
+
+      <h2 data-en="World Quran Recitation Day">اليوم العالمي للسرد القرآني</h2>
+
+      <img class="event-rule" src="assets/cert-band.svg" alt="" loading="lazy">
+
+      <!-- لا data-en على الفقرة نفسها: طبقة الترجمة تكتب textContent فتمحو
+           ما بداخل العنصر. فالوسم على الأبناء وحدهم — وبه يبقى «مجانًا»
+           ذهبيًّا في العربية، وتكتمل الجملة في الإنجليزية. -->
+      <p>
+        <span data-en="Tajweedoo's Quran Recitation Tool is available">أداة السرد القرآني من تجويدوو متاحة</span>
+        <strong data-en="free">مجانًا</strong>
+        <span data-en="for everyone — a more focused, better ordered way to review the Book of Allah.">للجميع، لتجربة أكثر تركيزًا وتنظيمًا في مراجعة كتاب الله.</span>
+      </p>
+
+      <ul class="event-facts">
+        <li data-en="Completely free">مجانية بالكامل</li>
+        <li data-en="No account, no card">بلا حساب ولا بطاقة</li>
+      </ul>
+
+      <!--
+        العدّاد لوحٌ قائم بذاته إلى جانب الزرّ، لا رقمٌ سائبٌ فوقه: الرقم
+        يُقرأ من بعيد، وكلمته تحته لا بجانبه فلا يلتصق «١٠» بـ«أيام».
+        وقد يعود بلا رقم (يوم واحد · يومان · اليوم نفسه)، فالرقم الفارغ
+        يُطوى بـ`:empty` ويبقى اللوح على كلمته وحدها.
+      -->
+      <div class="event-actions">
+        <div class="event-countdown" id="event-countdown" hidden>
+          <span class="cd-num" id="cd-num"></span>
+          <span class="cd-label" id="cd-label"></span>
+        </div>
+
+        <a class="btn btn-gold btn-lg" data-cta href="#" data-en="Try the Quran Recitation Tool free">جرّب أداة السرد القرآني مجانًا</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── المزايا ────────────────────────────────────────────────────── -->
+<section class="section" id="features">
+  <div class="wrap">
+    <p class="section-eyebrow" data-en="Why this tool">لماذا هذه الأداة</p>
+    <h2 class="section-title" data-en="What makes it different">ما الذي يجعلها مختلفة</h2>
+    <div class="cards">
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 6.6C10.5 5.3 8.6 4.6 6.5 4.6H4.2a1 1 0 0 0-1 1v11.8a1 1 0 0 0 1 1h2.3c2.1 0 4 .7 5.5 2"/>
+            <path d="M12 6.6c1.5-1.3 3.4-2 5.5-2h2.3a1 1 0 0 1 1 1v11.8a1 1 0 0 1-1 1h-2.3c-2.1 0-4 .7-5.5 2"/>
+            <path d="M12 6.6v13.2"/>
+          </svg>
+        </span>
+        <h3 data-en="A real mushaf, not reflowed text">مصحف حقيقي لا نصّ مُعاد التشكيل</h3>
+        <p data-en="The page is the publisher's own, with its script, its word positions and its line endings. What the student memorised by sight stays exactly as it was.">الصفحة هي صفحة الناشر نفسها، بخطّها ومواضع كلماتها ونهاياتها. ما حفظه الطالب بصريًّا يبقى كما هو.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3.2 3.4 7.5 12 11.8l8.6-4.3L12 3.2Z"/>
+            <path d="M3.4 12.2 12 16.5l8.6-4.3"/>
+            <path d="M3.4 16.5 12 20.8l8.6-4.3"/>
+          </svg>
+        </span>
+        <h3 data-en="Five riwayat and their editions">خمس روايات وطبعاتها</h3>
+        <p data-en="Hafs, Warsh, Qalun, ad-Duri and Shu'bah, each with its own verse numbering — no number is carried from one riwaya into another.">حفص وورش وقالون والدوري وشعبة، وكل رواية بترقيم آياتها هي — لا يُنقل رقم رواية إلى أخرى.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.6 3.6 18 11.4l-4.7 1.1-2.2 4.7L6.6 3.6Z"/>
+            <path d="M14.4 14.6 19 19.2"/>
+          </svg>
+        </span>
+        <h3 data-en="Every verse is tappable">الآيات قابلة للنقر</h3>
+        <p data-en="A tap on a verse pins the position and highlights it, so a note is recorded at exactly its place without interrupting the recitation.">نقرة على الآية تُثبِّت الموضع وتُبرزها، فالملاحظة تُسجَّل عند موضعها بالضبط دون مقاطعة السرد.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3.2 4.6 6.1v6c0 4.4 3 7.7 7.4 8.7 4.4-1 7.4-4.3 7.4-8.7v-6L12 3.2Z"/>
+            <path d="M9.1 12.1l2.2 2.2 4.1-4.5"/>
+          </svg>
+        </span>
+        <h3 data-en="An ordered session, start to finish">مجلس منظَّم من أوّله لآخره</h3>
+        <p data-en="The position and its notes are saved as they happen, and the session survives a closed device or a reload.">موضع السرد وملاحظاته محفوظة أوّلًا بأوّل، والمجلس ينجو من إغلاق الجهاز أو إعادة التحميل.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 12.6V6.1a1.7 1.7 0 1 1 3.4 0v5.4"/>
+            <path d="M13.4 10.7a1.6 1.6 0 0 1 3.2 0v1.2"/>
+            <path d="M16.6 11.6a1.6 1.6 0 0 1 3.2 0v3.2c0 3-2.2 5.4-5.3 5.4h-1.3c-2 0-3.3-.9-4.2-2.4l-2-3.4a1.6 1.6 0 0 1 2.7-1.9l1.3 1.6"/>
+          </svg>
+        </span>
+        <h3 data-en="Turn pages by touch">تقليب باللمس</h3>
+        <p data-en="A natural swipe, the way a mushaf leaf is turned — tuned for phones, tablets and interactive screens.">سحب طبيعي بالإصبع كما تُقلَّب ورقة المصحف، مضبوط للجوال واللوحي والشاشات التفاعلية.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8.8"/>
+            <path d="M8.3 12.2l2.5 2.5 4.9-5.4"/>
+          </svg>
+        </span>
+        <h3 data-en="Finishing a surah, sensibly">إنهاء السورة بذكاء</h3>
+        <p data-en="Open a surah's last page and the button to finish it appears — at its final verse by your own edition's counting.">حين تفتح آخر صفحة للسورة يظهر زرّ إنهائها — عند آخر آية فيها بعدّ طبعتك أنت.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!--
+  ── من داخل الأداة — ثلاثة أقسام لا صفّ واحد ──────────────────────
+  كانت ثلاث لقطات بعرض ٣٠٠px جنبًا إلى جنب: الأداة كلّها مضغوطة في شريط
+  واحد، وصفحة المصحف فيها أصغر من أن تُقرأ. وهي أهمّ ما في الصفحة أن يُرى.
+
+  فصارت ثلاثة أقسام، لكلٍّ منها عرض الصفحة كاملًا: اللقطة في نصف، والكلام
+  في النصف الآخر، وتتبادلان الجهة قسمًا بعد قسم فلا يصير الإيقاع رتيبًا.
+-->
+
+<!-- ١) الملاحظة أثناء السرد -->
+<section class="showcase section-alt" id="notes">
+  <div class="wrap showcase-grid">
+
+    <div class="showcase-copy">
+      <p class="section-eyebrow start" data-en="During the recitation">أثناء السرد</p>
+      <h2 data-en="Three buttons, and a note recorded where it happened">ثلاثة أزرار، وملاحظة تُسجَّل عند موضعها</h2>
+      <p class="showcase-lede" data-en="Hesitation · memory slip · tajweed note. One tap fixes the note at the verse the student stopped on — without stopping them, and without taking the teacher off the page.">
+        تردّد · خطأ حفظ · تنبيه تجويد. ضغطة واحدة تُثبِّت الملاحظة عند الآية
+        التي وقف عندها الطالب — بلا أن يتوقّف، وبلا أن يخرج المعلّم من الصفحة.
+      </p>
+      <ul class="showcase-points">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="A note belongs to its own verse, not to the whole page.">الملاحظة تُنسب إلى آيتها هي، لا إلى الصفحة كلّها.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="And it can be deleted at any time if it landed in the wrong place — without changing what was covered.">وتُحذف في أي وقت إن سُجّلت في غير موضعها — ولا يتغيّر بذلك ما أُنجز.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="A night mode turns the same page dark, for sessions after Isha.">ووضع ليليّ يقلب الصفحة نفسها، لمجالس ما بعد العشاء.</span></li>
+      </ul>
+    </div>
+
+    <div class="showcase-visual">
+      <div class="showcase-stage stage-night">
+        <div class="device device-lg night">
+          <div class="device-bar">
+            <span class="dot-x">✕</span>
+            <span class="lock-chip"><span class="lock">🔒</span> <span data-en="Hafs from 'Asim">حفص عن عاصم</span></span>
+            <span class="bar-icons">◐ ⏸</span>
+          </div>
+          <div class="device-strip"><span data-en="Al-Baqarah 5">البقرة 5</span><span class="strip-meta" data-en="3 notes · 12:40">3 ملاحظات · 12:40</span></div>
+          <div class="device-page">
+            <img src="assets/page-hafs-001.svg" alt="صفحة من المصحف في الوضع الليلي داخل الأداة" data-en-alt="A mushaf page in night mode inside the tool" loading="lazy" width="235" height="235">
+          </div>
+          <div class="device-notes">
+            <span class="note note-tajweed" data-en="Tajweed note">تنبيه تجويد</span>
+            <span class="note note-memory" data-en="Memory slip">خطأ حفظ</span>
+            <span class="note note-hesitation" data-en="Hesitation">تردد</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ٢) إنهاء السورة — الصورة تنتقل إلى الجهة الأخرى -->
+<section class="showcase flip" id="finish">
+  <div class="wrap showcase-grid">
+
+    <div class="showcase-copy">
+      <p class="section-eyebrow start" data-en="At the last verse">عند آخر آية</p>
+      <h2 data-en="The finish button appears on its own">زرّ إنهاء السورة يظهر وحده</h2>
+      <p class="showcase-lede" data-en="Open the surah's last page and the button is there — at its final verse by your edition's counting, not another riwaya's. No waiting, and nothing finishing ahead of the student.">
+        حين تفتح آخر صفحة للسورة يظهر الزرّ — عند آخر آية فيها بعدّ طبعتك أنت،
+        لا بعدّ رواية أخرى. لا انتظار، ولا إنهاء تلقائي يسبق الطالب.
+      </p>
+      <ul class="showcase-points">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="Browsing follows the student freely; progress is only recorded on purpose.">التصفّح يتبع الطالب مجّانًا، والإنجاز يُثبَّت بقصد لا بالخطأ.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="The mushaf is locked for the whole session, so the page boundaries the memorisation was built on never move.">المصحف مقفل طوال المجلس، فلا تتغيّر حدود الصفحات التي بُني عليها الحفظ.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="And pages turn by touch, the way a mushaf leaf turns.">وتقليب باللمس، كما تُقلَّب ورقة المصحف.</span></li>
+      </ul>
+    </div>
+
+    <div class="showcase-visual">
+      <div class="showcase-stage">
+        <div class="device device-lg">
+          <div class="device-bar">
+            <span class="dot-x">✕</span>
+            <span class="lock-chip"><span class="lock">🔒</span> <span data-en="Warsh from Nafi'">ورش عن نافع</span></span>
+            <span class="bar-icons">◐ ⏸</span>
+          </div>
+          <div class="device-strip"><span data-en="Al-Fatihah 1">الفاتحة 1</span><span class="strip-meta" data-en="The surah's last page">آخر صفحة السورة</span></div>
+          <div class="device-page">
+            <img src="assets/page-warsh-001.svg" alt="صفحة الفاتحة في مصحف ورش داخل الأداة" data-en-alt="Al-Fatihah in the Warsh mushaf inside the tool" loading="lazy" width="235" height="235">
+          </div>
+          <div class="device-float" data-en="✓ Finished Al-Fatihah">✓ أنهى سورة الفاتحة</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ٣) تقرير المجلس -->
+<section class="showcase section-alt" id="report">
+  <div class="wrap showcase-grid">
+
+    <div class="showcase-copy">
+      <p class="section-eyebrow start" data-en="After the session">بعد المجلس</p>
+      <h2 data-en="A report that says what was read, and where it stumbled">تقرير يقول ما قُرئ، وأين تعثّر</h2>
+      <p class="showcase-lede" data-en="It comes out by itself as soon as the session ends: what was recited, from where to where, in which mushaf, and in how long — with every note at its verse. Ready to save or send to a parent.">
+        يخرج وحده بمجرّد إنهاء المجلس: ما سُرِد، ومن أين إلى أين، وبأي مصحف،
+        وفي كم — وكل ملاحظة عند آيتها. جاهز للحفظ أو الإرسال لوليّ الأمر.
+      </p>
+      <ul class="showcase-points">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="With the student's name, the date and the length of the session.">باسم الطالب وتاريخ المجلس ومدّته.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="Every note at its ayah — where the hesitation was, and where the memory slipped.">وكلّ ملاحظة عند آيتها: أين كان التردّد، وأين وقع خطأ الحفظ.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span data-en="Then the certificate, one tap away.">ويليه إصدار الشهادة بضغطة.</span></li>
+      </ul>
+    </div>
+
+    <div class="showcase-visual">
+      <div class="showcase-stage">
+        <div class="paper paper-lg">
+          <div class="paper-head">
+            <strong data-en="Recitation session report">تقرير مجلس السرد</strong>
+            <span data-en="Muhammad · one juz'">محمد · جزء</span>
+          </div>
+          <dl class="paper-rows">
+            <div><dt data-en="Recited">سَرَدَ</dt><dd data-en="6 pages · 54 ayahs">٦ صفحات · ٥٤ آية</dd></div>
+            <div><dt data-en="From — to">من — إلى</dt><dd data-en="Al-Baqarah 1 ← Al-Baqarah 74">البقرة 1 ← البقرة 74</dd></div>
+            <div><dt data-en="Mushaf">المصحف</dt><dd data-en="The Madinah Mushaf — Hafs from 'Asim">مصحف المدينة — حفص عن عاصم</dd></div>
+            <div><dt data-en="Recitation time">مدة السرد</dt><dd data-en="22 minutes">٢٢ دقيقة</dd></div>
+            <div><dt data-en="Hesitation">تردّد</dt><dd data-en="3 — Al-Baqarah 21, 45">٣ — البقرة 21، 45</dd></div>
+            <div><dt data-en="Memory slip">خطأ حفظ</dt><dd data-en="1 — Al-Baqarah 61">١ — البقرة 61</dd></div>
+            <div><dt data-en="Tajweed note">تنبيه تجويد</dt><dd data-en="2 — Al-Baqarah 30, 58">٢ — البقرة 30، 58</dd></div>
+          </dl>
+          <p class="paper-foot">اللَّهُمَّ اجْعَلِ الْقُرْآنَ الْعَظِيمَ رَبِيعَ قُلُوبِنَا</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!--
+  ── التطبيق على Google Play ────────────────────────────────────────
+  موضعه بعد «من داخل الأداة» عمدًا: القارئ رأى للتوّ ما تفعله الأداة،
+  وهذه هي اللحظة التي يسأل فيها «كيف آخذها؟». ولوحه داكن وحده لأن شارة
+  المتجر صُمّمت لتُقرأ على الداكن، ولأن التحميل حدثٌ لا فقرة.
+-->
+<section class="download" id="download">
+  <div class="wrap download-grid">
+
+    <div class="download-copy">
+      <p class="eyebrow">
+        <img src="assets/sard-logo-v2.webp?v=3" alt="" width="20" height="20" loading="lazy">
+        <span data-en="The mobile app">التطبيق على الجوال</span>
+      </p>
+
+      <h2 data-en="Get the Quran Recitation app on your phone">حمّل تطبيق السرد القرآني على هاتفك</h2>
+
+      <p class="download-lede" data-en="The mushaf in five riwayat, notes in three taps, and the report and certificate at the end of the session — all in one app that opens without a connection.">
+        المصحف بخمس روايات، وتسجيل الملاحظات بثلاث ضغطات، والتقرير والشهادة
+        في آخر المجلس — كلّه في تطبيق واحد يفتح بلا إنترنت.
+      </p>
+
+      <ul class="download-facts">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Completely free">مجاني بالكامل</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="No ads">بلا إعلانات</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Works offline">يعمل بلا إنترنت</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="No account">بلا حساب</span></li>
+      </ul>
+
+      <!--
+        شارتان بالهيئة نفسها لا شارة وزرّ: من يقرأ الصفّ يرى طريقين
+        متكافئين — المتجر لمن على أندرويد، والمتصفّح لمن ليس عليه.
+      -->
+      <div class="badge-row">
+
+        <a class="store-badge play-badge" data-play href="#" aria-label="حمّل التطبيق من Google Play" data-en-aria-label="Get the app on Google Play">
+          <svg viewBox="0 0 180 53" role="img" aria-hidden="true" focusable="false">
+            <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="#000"/>
+            <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="none" stroke="#9aa0a6" stroke-width="1.1"/>
+
+            <!-- عربيّ: العلامة يمينًا والنصّ يسيل عنها -->
+            <g class="badge-ar">
+              <use href="#play-mark" transform="translate(140.5 10.5) scale(1.35)"/>
+              <text x="130" y="21" text-anchor="start" fill="#fff"
+                    font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="9.5">احصل عليه من</text>
+              <text x="131" y="41.5" text-anchor="end" fill="#fff" direction="ltr"
+                    font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="-.2">Google Play</text>
+            </g>
+
+            <!-- إنجليزيّ: العلامة يسارًا، وهو تخطيط الشارة الرسميّ -->
+            <g class="badge-en">
+              <use href="#play-mark" transform="translate(11 10.5) scale(1.35)"/>
+              <text x="48" y="20" text-anchor="start" fill="#fff"
+                    font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="9" letter-spacing=".8">GET IT ON</text>
+              <text x="47" y="41.5" text-anchor="start" fill="#fff"
+                    font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="-.2">Google Play</text>
+            </g>
+          </svg>
+        </a>
+
+        <a class="store-badge web-badge" data-cta href="#" aria-label="افتح الأداة في المتصفّح" data-en-aria-label="Open the tool in the browser">
+          <svg viewBox="0 0 180 53" role="img" aria-hidden="true" focusable="false">
+            <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="url(#wbg)"/>
+            <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="none" stroke="#4bbfa3" stroke-width="1.1" opacity=".65"/>
+
+            <g class="badge-ar">
+              <use href="#web-mark" transform="translate(140.5 11.5)"/>
+              <!-- سطرا العربية أبعد قليلًا من نظيريهما اللاتينيين: الشدّة
+                   فوق «المتصفّح» ترتفع فوق الحرف، فتقارب «في» التي تعلوها. -->
+              <text x="130" y="19.5" text-anchor="start" fill="#cfeee5"
+                    font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="9.5">أو افتحها الآن في</text>
+              <text x="130" y="42.5" text-anchor="start" fill="#fff"
+                    font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="19" font-weight="700">المتصفّح</text>
+            </g>
+
+            <g class="badge-en">
+              <use href="#web-mark" transform="translate(11 11.5)"/>
+              <text x="48" y="20" text-anchor="start" fill="#cfeee5"
+                    font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="9" letter-spacing=".8">OR OPEN IT IN</text>
+              <text x="47" y="41.5" text-anchor="start" fill="#fff"
+                    font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="19" font-weight="700">The Browser</text>
+            </g>
+          </svg>
+        </a>
+
+      </div>
+
+      <p class="download-note" data-en="On a computer or a tablet: the same tool runs in full from the browser with nothing to download, and can be installed to the home screen if you like.">
+        ولمن على الحاسب أو اللوحي: الأداة نفسها تعمل كاملةً من المتصفّح بلا تحميل،
+        وتُثبَّت على الشاشة الرئيسية إن أردت.
+      </p>
+    </div>
+
+    <!-- الهاتف يعرض الأداة في وضعها الليليّ: هو ما سيراه من يحمّلها -->
+    <div class="download-visual">
+      <div class="phone-glow" aria-hidden="true"></div>
+      <div class="phone" role="img" aria-label="تطبيق السرد القرآني على هاتف أندرويد" data-en-aria-label="The Quran Recitation app on an Android phone">
+        <div class="phone-screen">
+          <div class="device night device-flat">
+            <div class="device-bar">
+              <span class="dot-x">✕</span>
+              <span class="lock-chip"><span class="lock">🔒</span> <span data-en="Hafs from 'Asim">حفص عن عاصم</span></span>
+              <span class="bar-icons">◐</span>
+            </div>
+            <div class="device-strip"><span data-en="Al-Baqarah 5">البقرة 5</span><span class="strip-meta" data-en="3 notes">3 ملاحظات</span></div>
+            <div class="device-page">
+              <img src="assets/page-hafs-001.svg" alt="" loading="lazy" width="235" height="235">
+            </div>
+            <div class="device-notes">
+              <span class="note note-tajweed" data-en="Tajweed note">تنبيه تجويد</span>
+              <span class="note note-memory" data-en="Memory slip">خطأ حفظ</span>
+              <span class="note note-hesitation" data-en="Hesitation">تردد</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!--
+  ── التطبيق على آيفون ────────────────────────────────────────────
+  قسم أخفّ من قسم أندرويد عمدًا: القسمان متجاوران، ولو تساويا في الثقل
+  البصريّ قُرِئ الثاني تكرارًا للأوّل. ونصّه يتبدّل بحال `APPSTORE_URL`
+  في آخر الملفّ — فما دام '#' قال «قريبًا» ولم يَعِد بتحميل لا يقع، وإذا
+  وُضع الرابط انقلب من تلقائه إلى دعوةٍ للتحميل. لا نصّ يُحرَّر مرّتين.
+-->
+<!--
+  ── التطبيق على آيفون ────────────────────────────────────────────
+  قسم نظير لقسم أندرويد لا تابع له: يشترك معه في الهيكل (.download)
+  فيرث صقله كلّه، ويفترق عنه في ثلاثة تمنع أن يُقرأ تكرارًا —
+  أرضيّته ذهبيّة لا خضراء، والهاتف في الجهة المقابلة، والشاشة داخله
+  تعرض التقرير لا صفحة المصحف. فمن ينزل بين القسمين يرى وجهَي الأداة
+  لا صورةً واحدة مرّتين.
+-->
+<section class="download download-ios" id="ios">
+  <div class="wrap download-grid">
+
+    <div class="download-copy">
+      <p class="eyebrow">
+        <svg class="apple-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#apple-mark"/></svg>
+        <span data-en="The app on iPhone">التطبيق على آيفون</span>
+      </p>
+
+      <h2 data-en="Get the Quran Recitation app on iPhone and iPad">حمّل تطبيق السرد القرآني على آيفون وآيباد</h2>
+
+      <p class="download-lede" data-en="The same mushaf in five riwayat and the same three taps — and at the end of the session the report comes out on its own, ready to keep or to send.">
+        نفس المصحف بخمس روايات، ونفس الثلاث ضغطات — وفي آخر المجلس يخرج
+        التقرير وحده، جاهزًا للحفظ أو الإرسال.
+      </p>
+
+      <ul class="download-facts">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Completely free">مجاني بالكامل</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="No ads">بلا إعلانات</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="Works offline">يعمل بلا إنترنت</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg> <span data-en="No account">بلا حساب</span></li>
+      </ul>
+
+      <div class="badge-row appstore-badges">
+
+      <a class="store-badge apple-badge" data-appstore href="#"
+         aria-label="حمّل التطبيق من App Store" data-en-aria-label="Download on the App Store">
+        <svg viewBox="0 0 180 53" role="img" aria-hidden="true" focusable="false">
+          <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="#000"/>
+          <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="none" stroke="#a6a6a6" stroke-width="1.1"/>
+
+          <g class="badge-ar" color="#fff">
+            <use href="#apple-mark" transform="translate(139 11.5) scale(1.28)"/>
+            <text x="130" y="21" text-anchor="start" fill="#fff"
+                  font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="9.5">حمّله من</text>
+            <text x="131" y="41.5" text-anchor="end" fill="#fff" direction="ltr"
+                  font-family="'SF Pro Text', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="-.3">App Store</text>
+          </g>
+
+          <g class="badge-en" color="#fff">
+            <use href="#apple-mark" transform="translate(13 11.5) scale(1.28)"/>
+            <text x="48" y="20" text-anchor="start" fill="#fff"
+                  font-family="'SF Pro Text', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="9" letter-spacing=".6">Download on the</text>
+            <text x="47" y="41.5" text-anchor="start" fill="#fff"
+                  font-family="'SF Pro Text', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="500" letter-spacing="-.3">App Store</text>
+          </g>
+        </svg>
+      </a>
+
+      <a class="store-badge web-badge" data-cta href="#"
+         aria-label="افتح الأداة في المتصفّح" data-en-aria-label="Open the tool in the browser">
+        <svg viewBox="0 0 180 53" role="img" aria-hidden="true" focusable="false">
+          <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="url(#wbg)"/>
+          <rect x=".6" y=".6" width="178.8" height="51.8" rx="8" fill="none" stroke="#4bbfa3" stroke-width="1.1" opacity=".65"/>
+          <g class="badge-ar">
+            <use href="#web-mark" transform="translate(140.5 11.5)"/>
+            <text x="130" y="19.5" text-anchor="start" fill="#cfeee5"
+                  font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="9.5">أو افتحها الآن في</text>
+            <text x="130" y="42.5" text-anchor="start" fill="#fff"
+                  font-family="'IBM Plex Sans Arabic', 'Segoe UI', sans-serif" font-size="19" font-weight="700">المتصفّح</text>
+          </g>
+          <g class="badge-en">
+            <use href="#web-mark" transform="translate(11 11.5)"/>
+            <text x="48" y="20" text-anchor="start" fill="#cfeee5"
+                  font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="9" letter-spacing=".8">OR OPEN IT IN</text>
+            <text x="47" y="41.5" text-anchor="start" fill="#fff"
+                  font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="19" font-weight="700">The Browser</text>
+          </g>
+        </svg>
+      </a>
+
+    </div>
+
+    </div>
+
+    <div class="download-visual">
+      <div class="phone-glow" aria-hidden="true"></div>
+      <div class="phone iphone" role="img"
+           aria-label="تقرير المجلس في تطبيق السرد القرآني على آيفون"
+           data-en-aria-label="The session report in the Quran Recitation app on an iPhone">
+        <div class="phone-screen">
+          <div class="ios-screen">
+
+            <!-- شريط الحالة: التفصيلة التي تجعل اللوح يُقرأ شاشةً لا بطاقة -->
+            <div class="ios-status">
+              <span data-en="9:41">٩:٤١</span>
+              <span class="ios-status-icons" aria-hidden="true">
+                <svg viewBox="0 0 22 12"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                <svg viewBox="0 0 26 12"><rect x=".6" y=".6" width="20" height="10.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1"/><rect x="2.4" y="2.4" width="14" height="7.2" rx="1.6"/><path d="M22.4 4.2v3.6a2.4 2.4 0 0 0 0-3.6z"/></svg>
+              </span>
+            </div>
+
+            <div class="ios-bar">
+              <span class="ios-back" aria-hidden="true">‹</span>
+              <strong data-en="Session report">تقرير المجلس</strong>
+              <span class="ios-share" aria-hidden="true">↥</span>
+            </div>
+
+            <div class="ios-body">
+              <div class="paper paper-phone">
+                <div class="paper-head">
+                  <strong data-en="Recitation session report">تقرير مجلس السرد</strong>
+                  <span data-en="Muhammad · one juz'">محمد · جزء</span>
+                </div>
+                <dl class="paper-rows">
+                  <div><dt data-en="Recited">سَرَدَ</dt><dd data-en="6 pages · 54 ayahs">٦ صفحات · ٥٤ آية</dd></div>
+                  <div><dt data-en="From — to">من — إلى</dt><dd data-en="Al-Baqarah 1 ← 74">البقرة 1 ← 74</dd></div>
+                  <div><dt data-en="Recitation time">مدة السرد</dt><dd data-en="22 minutes">٢٢ دقيقة</dd></div>
+                  <div><dt data-en="Hesitation">تردّد</dt><dd data-en="3">٣</dd></div>
+                  <div><dt data-en="Memory slip">خطأ حفظ</dt><dd data-en="1">١</dd></div>
+                  <div><dt data-en="Tajweed note">تنبيه تجويد</dt><dd data-en="2">٢</dd></div>
+                  <div><dt data-en="Mushaf">المصحف</dt><dd data-en="Madinah — Hafs">المدينة — حفص</dd></div>
+                </dl>
+                <p class="paper-foot">اللَّهُمَّ اجْعَلِ الْقُرْآنَ الْعَظِيمَ رَبِيعَ قُلُوبِنَا</p>
+              </div>
+            </div>
+
+            <div class="ios-action">
+              <span class="ios-btn" data-en="Issue the certificate">إصدار الشهادة</span>
+            </div>
+
+            <span class="ios-home" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!--
+  ── الشهادة ────────────────────────────────────────────────────────
+  أكبر ما في الصفحة بعد الهيرو عمدًا: هي الشيء الوحيد الذي يخرج من الأداة
+  ويبقى في يد الطالب. والنموذج هنا مبنيّ بالـHTML بالبنية نفسها التي تُصدَّر
+  بها الصورة — لا لقطة شاشة تتقادم مع كل تعديل.
+-->
+<section class="section cert-section" id="certificate">
+  <div class="wrap">
+    <p class="section-eyebrow" data-en="What the session produces">مخرَج المجلس</p>
+    <h2 class="section-title" data-en="And the session ends with a certificate in the reciter's name">وينتهي المجلس بشهادة باسم القارئ</h2>
+    <p class="section-lede" data-en="Issued with one tap when the session ends, as an image ready to send or print — it says what was recited to the nearest juz', to whom, and in how long.">
+      تُصدَر بضغطة بعد إنهاء المجلس، صورةً جاهزة للإرسال أو الطباعة — تقول ما
+      سُرِد بأقرب جزء، وعلى مَن، وفي كم.
+    </p>
+
+    <div class="cert-stage">
+      <!--
+        الورقة صورة واحدة — الإطار والزخرفة والعنوان والختم وشعار تجويدوو
+        مرسومة فيها — وما فوقها هو ما يتغيّر وحده. المواضع نِسَبٌ من الورقة
+        لا بكسلات، فتصغر معها على الجوال كما تصغر في الأداة نفسها.
+      -->
+      <div class="cert" role="img" aria-label="نموذج شهادة السرد: باسم القارئ، وما سرده، ومدّة السرد، ودعاء ورمز" data-en-aria-label="A sample recitation certificate: the reciter's name, what was recited, how long it took, a supplication and a QR code">
+        <img class="cert-sheet" src="assets/cert-template.webp?v=3" alt="" width="1120" height="792" loading="lazy">
+
+
+        <span class="cert-date">
+          <span data-en="30 August 2026 Gregorian">٣٠ أغسطس ٢٠٢٦ ميلادي</span>
+          <span data-en="17 Rabi' al-Awwal 1448 Hijri">١٧ ربيع الأول ١٤٤٨ هجري</span>
+        </span>
+
+        <span class="cert-lead" data-en="We certify that the reciter">نشهد أنّ القارئ</span>
+        <strong class="cert-name" data-en="Abdurrahman">عبد الرحمن</strong>
+        <span class="cert-sentence"><span data-en="has recited">قد سَرَدَ</span> <b data-en="5 juz' of the Holy Qur'an">٥ أجزاء من القرآن الكريم</b> <span data-en="to">على المقرئ</span> <b data-en="Shaykh Mahmoud">الشيخ محمود</b></span>
+        <span class="cert-meta"><span data-en="in">في مدّة</span> <b data-en="35 minutes">٣٥ دقيقة</b> <span data-en="· riwaya">· رواية</span> <b data-en="Hafs from 'Asim">حفص عن عاصم</b></span>
+
+        <p class="cert-dua">
+          اللَّهُمَّ اجْعَلِ الْقُرْآنَ الْعَظِيمَ رَبِيعَ قُلُوبِنَا،<br>
+          وَنُورَ صُدُورِنَا، وَجِلَاءَ أَحْزَانِنَا، وَذَهَابَ هُمُومِنَا
+        </p>
+
+        <span class="cert-qr">
+          <img src="assets/sample-qr.svg" alt="" width="88" height="88" loading="lazy">
+          <span data-en="Scan to verify this certificate">امسح لعرض توثيق الشهادة</span>
+        </span>
+      </div>
+    </div>
+
+    <ul class="cert-points">
+      <li><strong data-en="Always in the reciter's name.">باسم القارئ دائمًا.</strong> <span data-en="With the name of the listener who heard it.">ومعه اسم المقرئ الذي سمع.</span></li>
+      <li><strong data-en="To the nearest juz'.">بأقرب جزء.</strong> <span data-en="And on a completed khatmah it reads: the entire Holy Qur'an.">ولو أتمّ الختمة قيل: القرآن الكريم كاملًا.</span></li>
+      <li><strong data-en="A QR code on every certificate.">ورمز لكل شهادة.</strong> <span data-en="Scanning it opens the certificate on our own site.">يفتحها على موقعنا حين يُمسح بالكاميرا.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── كيف تعمل ──────────────────────────────────────────────────── -->
+<section class="section section-alt" id="how">
+  <div class="wrap">
+    <p class="section-eyebrow" data-en="Using it">الاستعمال</p>
+    <h2 class="section-title" data-en="How it works, in three steps">كيف تعمل؟ في ثلاث خطوات</h2>
+    <ol class="steps">
+      <li>
+        <span class="step-n" data-en="1">١</span>
+        <h3 data-en="Choose the riwaya and the mushaf">اختر الرواية والمصحف</h3>
+        <p data-en="Five riwayat, then the edition. Both stay fixed for the session, so nothing shifts under the memoriser's eye.">خمس روايات، ثم الطبعة. تُثبَّت طوال المجلس فلا يتغيّر الشكل تحت عين الحافظ.</p>
+      </li>
+      <li>
+        <span class="step-n" data-en="2">٢</span>
+        <h3 data-en="Set the surah and the starting verse">حدّد السورة وموضع البداية</h3>
+        <p data-en="Type the student's name, and the session begins at exactly the verse you want.">واكتب اسم الطالب، ويبدأ المجلس عند الآية التي تريدها بالضبط.</p>
+      </li>
+      <li>
+        <span class="step-n" data-en="3">٣</span>
+        <h3 data-en="Recite, and record in three taps">اسرد وسجّل بثلاث ضغطات</h3>
+        <p data-en="Turn pages by touch, record what passes, finish a surah when you like — and the report writes itself.">قلّب الصفحات باللمس، وسجّل ما يمرّ، وأنهِ السورة حين تريد — ويخرج التقرير وحده.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ── الروايات ──────────────────────────────────────────────────── -->
+<section class="section" id="riwayat">
+  <div class="wrap wrap-wide">
+    <p class="section-eyebrow" data-en="The mushafs">المصاحف</p>
+    <h2 class="section-title" data-en="Supported riwayat and mushafs">الروايات والمصاحف المدعومة</h2>
+    <p class="section-lede" data-en="Each riwaya comes from its own printed edition, with its own verse numbering. This is the very same first page in all five — see how they differ.">
+      كل رواية مأخوذة من طبعتها هي، وبترقيم آياتها هي. هذه الصفحة الأولى نفسها
+      في الخمس — انظر كيف تختلف.
+    </p>
+
+    <!--
+      القسم مقارنة، فما يشترك فيه الخمس لا يُكتب خمس مرّات: الناشر وعدد
+      الصفحات نزلا إلى سطر واحد تحت الشبكة، وبقي في كل عنصر ما يفترق به
+      وحده — اسم الرواية وعدد آياتها وعدّها. وبذلك تُقرأ الشبكة بالفرق لا
+      بالتكرار، والصفحة هي العنصر لا بطاقةٌ تحيط بها.
+    -->
+    <ol class="riwayat">
+      <li class="riwaya">
+        <figure class="riwaya-leaf">
+          <img src="assets/page-hafs-001.svg" alt="الصفحة الأولى من مصحف المدينة برواية حفص" data-en-alt="The first page of the Madinah Mushaf in Hafs" loading="lazy" width="235" height="235">
+        </figure>
+        <h3 data-en="Hafs from 'Asim">حفص عن عاصم</h3>
+        <p class="riwaya-count"><b data-en="6,236">٦٢٣٦</b> <span data-en="ayahs">آية</span> · <span data-en="Kufan counting">العدّ الكوفي</span></p>
+      </li>
+      <li class="riwaya">
+        <figure class="riwaya-leaf">
+          <img src="assets/page-warsh-001.svg" alt="الصفحة الأولى من مصحف المدينة برواية ورش" data-en-alt="The first page of the Madinah Mushaf in Warsh" loading="lazy" width="235" height="235">
+        </figure>
+        <h3 data-en="Warsh from Nafi'">ورش عن نافع</h3>
+        <p class="riwaya-count"><b data-en="6,214">٦٢١٤</b> <span data-en="ayahs">آية</span> · <span data-en="Madinan counting">العدّ المدني</span></p>
+      </li>
+      <li class="riwaya">
+        <figure class="riwaya-leaf">
+          <img src="assets/page-qalun-001.svg" alt="الصفحة الأولى من مصحف المدينة برواية قالون" data-en-alt="The first page of the Madinah Mushaf in Qalun" loading="lazy" width="235" height="235">
+        </figure>
+        <h3 data-en="Qalun from Nafi'">قالون عن نافع</h3>
+        <p class="riwaya-count"><b data-en="6,214">٦٢١٤</b> <span data-en="ayahs">آية</span> · <span data-en="Madinan counting">العدّ المدني</span></p>
+      </li>
+      <li class="riwaya">
+        <figure class="riwaya-leaf">
+          <img src="assets/page-duri-001.svg" alt="الصفحة الأولى من مصحف المدينة برواية الدوري عن أبي عمرو" data-en-alt="The first page of the Madinah Mushaf in ad-Duri from Abu 'Amr" loading="lazy" width="235" height="235">
+        </figure>
+        <h3 data-en="Ad-Duri from Abu 'Amr">الدوري عن أبي عمرو</h3>
+        <p class="riwaya-count"><b data-en="6,218">٦٢١٨</b> <span data-en="ayahs">آية</span> · <span data-en="its own mushaf's counting">عدّ مصحفه</span></p>
+      </li>
+      <li class="riwaya">
+        <figure class="riwaya-leaf">
+          <img src="assets/page-shubah-001.svg" alt="الصفحة الأولى من مصحف المدينة برواية شعبة عن عاصم" data-en-alt="The first page of the Madinah Mushaf in Shu'bah from 'Asim" loading="lazy" width="235" height="235">
+        </figure>
+        <h3 data-en="Shu'bah from 'Asim">شعبة عن عاصم</h3>
+        <p class="riwaya-count"><b data-en="6,236">٦٢٣٦</b> <span data-en="ayahs">آية</span> · <span data-en="Kufan counting">العدّ الكوفي</span></p>
+      </li>
+    </ol>
+
+    <p class="riwayat-shared">
+      <span data-en="All five are from">الخمس من</span>
+      <strong data-en="the Madinah Mushaf">مصحف المدينة النبوية</strong> —
+      <span data-en="King Fahd Complex for the Printing of the Holy Quran,">مجمّع الملك فهد لطباعة المصحف الشريف،</span>
+      <span data-en="604 pages each.">٦٠٤ صفحات لكل مصحف.</span>
+    </p>
+
+  </div>
+</section>
+
+<!-- ── لماذا للسرد تحديدًا ───────────────────────────────────────── -->
+<section class="section section-alt" id="why">
+  <div class="wrap why-grid">
+
+    <!-- المقدّمة تلتصق أثناء قراءة القائمة على الشاشة الواسعة: السؤال يبقى
+         أمام العين وإجاباته تمرّ تحته، بدل أن يغيب قبل أن تُقرأ الثالثة. -->
+    <div class="why-intro">
+      <p class="section-eyebrow start" data-en="The difference">الفرق</p>
+      <h2 class="section-title start" data-en="Why it was built for recitation in particular">لماذا صُمّمت للسرد تحديدًا؟</h2>
+      <p class="section-lede start" data-en="Quran apps are many, but they are made for reading, reciting aloud and searching. A recitation session is another thing: a student reciting from memory, a teacher listening without interrupting, and limited time.">
+        تطبيقات القرآن كثيرة، لكنها مصنوعة للقراءة والتلاوة والبحث. مجلس السرد
+        شيء آخر: طالب يقرأ من حفظه، ومعلّم يسمع ولا يقاطع، ووقت محدود.
+      </p>
+      <p class="why-close" data-en="These are not features added to a reading app — they are the reason this tool exists.">
+        هذه ليست مزايا أُضيفت إلى تطبيق قراءة — هي سبب وجود الأداة.
+      </p>
+    </div>
+
+    <!-- ستّ دعاوى مرقّمة يفصلها خيط، لا ستّ بطاقات محاطة: الإطارات كانت
+         تزاحم بعضها فتُقرأ القائمة شبكةً، وهي إنما تُقرأ سطرًا بعد سطر. -->
+    <ol class="why-list">
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="1">١</span>
+        <div class="why-text">
+          <strong data-en="No interruption.">لا مقاطعة.</strong>
+          <span data-en="A note is one tap, recorded where it happened; it neither stops the student nor takes the teacher off the page.">الملاحظة ضغطة واحدة تُسجَّل عند موضعها، ولا تُوقف الطالب ولا تُخرج المعلّم من الصفحة.</span>
+        </div>
+      </li>
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="2">٢</span>
+        <div class="why-text">
+          <strong data-en="Position is not progress.">الموضع ليس الإنجاز.</strong>
+          <span data-en="Browsing follows the student freely, and progress is recorded on purpose, never by accident.">تصفّح الصفحات يتبع الطالب مجّانًا، والإنجاز يُثبَّت بقصد لا بالخطأ.</span>
+        </div>
+      </li>
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="3">٣</span>
+        <div class="why-text">
+          <strong data-en="The page never shifts.">الشكل ثابت.</strong>
+          <span data-en="The mushaf is locked for the whole session, so the page boundaries the memorisation was built on never move.">المصحف مقفل طوال المجلس، فلا تتغيّر حدود الصفحات التي بُني عليها الحفظ.</span>
+        </div>
+      </li>
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="4">٤</span>
+        <div class="why-text">
+          <strong data-en="Mistakes can be undone.">الخطأ يُصحَّح.</strong>
+          <span data-en="A note recorded in the wrong place can be deleted at any time, and what was covered stays as it was.">ملاحظة سُجّلت في غير موضعها تُحذف في أي وقت، ولا يتغيّر بذلك ما أُنجز.</span>
+        </div>
+      </li>
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="5">٥</span>
+        <div class="why-text">
+          <strong data-en="It works offline.">يعمل بلا إنترنت.</strong>
+          <span data-en="A halaqa in a mosque or a village does not wait for a network, and the session survives a closed device.">الحلقة في المسجد أو القرية لا تنتظر شبكة، والمجلس ينجو من إغلاق الجهاز.</span>
+        </div>
+      </li>
+      <li>
+        <span class="why-n" aria-hidden="true" data-en="6">٦</span>
+        <div class="why-text">
+          <strong data-en="It ends with something useful.">ينتهي بشيء مفيد.</strong>
+          <span data-en="A report and a certificate, not just the feeling that time passed.">تقرير للمجلس وشهادة، لا مجرّد شعور بأن الوقت مضى.</span>
+        </div>
+      </li>
+    </ol>
+
+  </div>
+</section>
+
+<!-- ── الأسئلة الشائعة ───────────────────────────────────────────── -->
+<section class="section" id="faq">
+  <div class="wrap wrap-narrow">
+    <p class="section-eyebrow" data-en="Before you start">قبل أن تبدأ</p>
+    <h2 class="section-title" data-en="Frequently asked">أسئلة شائعة</h2>
+
+    <details>
+      <summary data-en="Is the tool really free?">هل الأداة مجانية فعلًا؟</summary>
+      <p data-en="Yes — completely free: no card, no subscription, and no period that runs out.">نعم، مجانية بالكامل: بلا بطاقة، ولا اشتراك، ولا مدّة تنتهي.</p>
+    </details>
+    <details>
+      <summary data-en="Do I need an account to start?">هل أحتاج حسابًا لأبدأ؟</summary>
+      <p data-en="No. You open the tool and start the session straight away, and it is saved on your own device.">لا. تفتح الأداة وتبدأ المجلس مباشرة، والجلسة محفوظة على جهازك.</p>
+    </details>
+    <details>
+      <summary data-en="Is there an app I can install?">هل هناك تطبيق أنزّله على الجوال؟</summary>
+      <p data-en="Yes — on Google Play for Android and on the App Store for iPhone and iPad. And either way the same tool runs in full from the browser, with nothing to download.">نعم، على Google Play لأجهزة أندرويد وعلى App Store لآيفون وآيباد — وفي الحالين تعمل الأداة نفسها كاملةً من المتصفّح بلا تحميل.</p>
+    </details>
+    <details>
+      <summary data-en="Does it work offline?">هل تعمل بلا إنترنت؟</summary>
+      <p data-en="Yes. After the first visit a whole session runs with no network, and the mushaf pages you have opened stay available.">نعم. بعد فتحها أوّل مرّة يعمل المجلس كاملًا بلا شبكة، وصفحات المصحف التي فُتحت تبقى متاحة.</p>
+    </details>
+    <details>
+      <summary data-en="Does the mushaf match the printed one?">هل المصحف مطابق للمطبوع؟</summary>
+      <p data-en="The page is shown as the publisher produced it — word positions and page endings as in print, not text reflowed on screen.">الصفحة معروضة كما أخرجها الناشر — مواضع الكلمات ونهايات الصفحات كما في المطبوع، لا نصّ يُعاد رصفه على الشاشة.</p>
+    </details>
+    <details>
+      <summary data-en="What about the other riwayat?">ماذا عن الروايات الأخرى؟</summary>
+      <p data-en="Five are available now: Hafs, Warsh, Qalun, ad-Duri and Shu'bah. Any further riwaya arrives by the same road and no sooner: an edition from a known publisher, a licence that permits its use, and numbering read out of that edition itself rather than carried over from another.">خمس روايات متاحة الآن: حفص وورش وقالون والدوري وشعبة. وما بعدها يدخل بالمسار نفسه ولا يدخل قبله: طبعة من ناشر معروف، وترخيص يسمح بالاستعمال، وترقيم مستخرَج من الطبعة نفسها لا منقول من رواية أخرى.</p>
+    </details>
+    <details>
+      <summary data-en="Is it suitable for halaqas and institutes?">هل تصلح للحلقات والمعاهد؟</summary>
+      <p data-en="Yes. Every session produces a report in the student's name with everything that happened in it, and it can be saved as an image or sent.">نعم. كل مجلس يخرج بتقرير باسم الطالب وما مرّ فيه، ويمكن حفظه صورةً أو إرساله.</p>
+    </details>
+    <details>
+      <summary data-en="Which devices does it run on?">على أي أجهزة تعمل؟</summary>
+      <p data-en="The browser on phones, tablets, computers and interactive screens, with touch page-turning on touch devices — and an Android app on Google Play.">المتصفّح على الجوال واللوحي والحاسب والشاشات التفاعلية، مع تقليب باللمس على الأجهزة اللمسية — وتطبيق أندرويد على Google Play.</p>
+    </details>
+  </div>
+</section>
+
+
+
+<!-- ── الدعوة الأخيرة ────────────────────────────────────────────── -->
+<section class="final-cta">
+  <div class="wrap">
+    <img src="assets/sard-logo-v2.webp?v=3" alt="" width="56" height="56">
+    <h2 data-en="A tool that keeps a Quran recitation session present, and free of fussing over details.">أداة تجعل مجلس السرد للقرآن أكثر حضورًا، وأقل انشغالًا بالتفاصيل.</h2>
+    <p>
+      <span data-en="Try it for a single session, and you will see the difference in the report.">جرّبها في مجلس واحد، وسترى الفرق في التقرير.</span>
+      <span class="final-free" data-en="Completely free — no account, no subscription, no expiry.">مجانية بالكامل — بلا حساب، ولا اشتراك، ولا مدّة تنتهي.</span>
+    </p>
+    <div class="cta-row center">
+      <a class="btn btn-primary btn-lg" data-cta href="#" data-en="Try the Quran Recitation Tool free">جرّب أداة السرد القرآني مجانًا</a>
+      <a class="btn btn-ghost btn-lg" href="#faq" data-en="I have a question first">عندي سؤال أوّلًا</a>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<!--
+  الفوتر يحمل ما كان قسمًا مستقلًّا اسمه «عن تجويدوو». دمجُهما هنا يجعل
+  النسبة تُقرأ حيث تُقرأ عادةً — في ذيل الصفحة — بدل قسمٍ يقطع الطريق
+  إلى الدعوة الأخيرة. و`id="about"` يبقى ليصحّ أيّ رابط قديم إليه.
+-->
+<footer class="site-footer" id="about">
+  <div class="wrap footer-top">
+
+    <!-- النسبة أوّلًا: يعرف القارئ ما هذه الأداة ولمن، ثم يُعرَّف بتجويدوو -->
+    <div class="footer-issued">
+      <img src="assets/sard-logo-v2.webp?v=3" alt="" width="44" height="44" loading="lazy">
+      <p class="issued-name" data-en="The Quran Recitation Tool">أداة السرد القرآني</p>
+      <p class="issued-by">
+        <span data-en="One of">إحدى</span>
+        <a class="link" href="https://tajweedoo.com" target="_blank" rel="noopener" data-en="Tajweedoo's releases">إصدارات تجويدوو</a>
+      </p>
+      <p class="issued-note" data-en="Built for reciting and reviewing alone — beside the rest of Tajweedoo's tools for the Quran teacher.">
+        صُنعت للسرد والمراجعة وحدهما — إلى جانب بقيّة أدوات تجويدوو لمعلّم القرآن.
+      </p>
+    </div>
+
+    <div class="footer-maker">
+      <a class="footer-logo" href="https://tajweedoo.com" target="_blank" rel="noopener">
+        <img src="assets/tajweedoo.webp" alt="تجويدوو" data-en-alt="Tajweedoo" width="180" height="95" loading="lazy">
+      </a>
+      <p class="footer-about" data-en="Tajweedoo is a platform and a set of digital tools that help a Quran teacher give a lesson that is more interactive, better organised and more enjoyable.">
+        تجويدوو منصّة وأدوات رقمية تساعد معلّم القرآن على تقديم حصّة أكثر
+        تفاعلًا وتنظيمًا ومتعة.
+      </p>
+      <a class="btn btn-ghost btn-sm" href="https://tajweedoo.com" target="_blank" rel="noopener" data-en="Visit Tajweedoo">تعرّف على تجويدوو</a>
+    </div>
+
+  </div>
+  <div class="wrap">
+    <!--
+      حسابات تجويدوو: صفٌّ واحد في عرض الذيل لا عمودٌ ثالث في الشبكة —
+      فهي وجهةٌ خارج الموقع، وموضعها حيث يبحث القارئ عنها عادةً، فوق
+      السطر الدقيق مباشرةً. والاسم في `aria-label` لأن الأيقونة وحدها
+      لا تُقرأ، و`rel="me"` يربط الحساب بالموقع.
+    -->
+    <ul class="footer-social">
+      <li>
+        <a href="https://www.facebook.com/Tajweedoo" target="_blank" rel="me noopener" aria-label="فيسبوك" data-en-aria-label="Facebook" title="Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-facebook"></use></svg>
+        </a>
+      </li>
+      <li>
+        <a href="https://www.instagram.com/Tajweedoo" target="_blank" rel="me noopener" aria-label="انستجرام" data-en-aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-instagram"></use></svg>
+        </a>
+      </li>
+      <li>
+        <a href="https://whatsapp.com/channel/0029VbBtdqVICVfoB2K" target="_blank" rel="me noopener" aria-label="قناة واتساب" data-en-aria-label="WhatsApp channel" title="WhatsApp">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-whatsapp"></use></svg>
+        </a>
+      </li>
+    </ul>
+
+    <!-- المتجر يطلب رابط السياسة، والقارئ يطلبها هنا: صفحة واحدة، ورابط
+         واحد إليها من الموقع ومن داخل التطبيق. -->
+    <p class="fineprint">
+      <a class="link" href="/privacy" data-en="Privacy policy">سياسة الخصوصيّة</a>
+      ·
+      <a class="link" href="mailto:support@tajweedoo.com" dir="ltr">support@tajweedoo.com</a>
+    </p>
+    <p class="fineprint" data-en="Mushaf page originals from the King Fahd Complex for the Printing of the Holy Quran. Google Play and its logo are trademarks of Google LLC.">
+      أصول صفحات المصحف من مجمّع الملك فهد لطباعة المصحف الشريف.
+      Google Play وشعارها علامتان تجاريّتان لشركة Google LLC.
+    </p>
+  </div>
+</footer>
+
+<!--
+  سهم العودة: يظهر بعد أن يجاوز القارئ الشاشة الأولى، ويختفي في أعلاها
+  فلا يزاحم الهيرو. زرٌّ لا رابط — لأنه لا يقصد موضعًا في المستند بل
+  يُجري فعلًا؛ ولو كان `href="#"` لأضاف إلى تاريخ التصفّح خطوةً وهميّة.
+-->
+<button class="to-top" id="to-top" type="button"
+        aria-label="العودة إلى أعلى الصفحة" data-en-aria-label="Back to top">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M12 19V6M6 12l6-6 6 6" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<script>
+  /* ───────────────────────────────────────────────────────────────
+     ١) الروابط — هنا وحدها. كل أزرار الدعوة وشارات المتجر تأخذ منها.
+        اتركها '#' ولن يذهب زرّ إلى وجهة مخترعة، وتُخفى شارة المتجر
+        بدل أن تَعِد بتحميل لا يحدث.
+     ─────────────────────────────────────────────────────────────── */
+  // الأداة تحت /app من النطاق نفسه، فالرابط نسبي: تجربة النشر المحلّية
+  // والنطاق الحقيقي يعملان به معًا بلا تعديل.
+  const APP_URL  = '/app/';
+  // ← ضع هنا رابط صفحة التطبيق على المتجر، مثل:
+  //   https://play.google.com/store/apps/details?id=com.tajweedoo.sard
+  const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.tajweedoo.sard';
+  // ← ورابط صفحته على App Store، مثل:
+  //   https://apps.apple.com/app/id0000000000
+  const APPSTORE_URL = '#';
+
+  if (APP_URL !== '#') {
+    for (const a of document.querySelectorAll('[data-cta]')) a.href = APP_URL;
+  }
+
+  /* بلا رابط بعدُ: تبقى الشارة معروضة — القسم مصمَّم عليها — لكن يُنزع
+     رابطها، فالنقر لا يقذف القارئ إلى أعلى الصفحة كما يفعل '#'. */
+  for (const a of document.querySelectorAll('[data-play]')) {
+    if (PLAY_URL !== '#') { a.href = PLAY_URL; continue; }
+    a.removeAttribute('href');
+    a.setAttribute('aria-disabled', 'true');
+  }
+
+  /* شارة App Store كشارة Google Play تمامًا: تبقى معروضة، ويُنزع رابطها
+     ما دام لم يوضع بعد، فلا يقذف النقر القارئ إلى أعلى الصفحة. */
+  for (const a of document.querySelectorAll('[data-appstore]')) {
+    if (APPSTORE_URL !== '#') { a.href = APPSTORE_URL; continue; }
+    a.removeAttribute('href');
+    a.setAttribute('aria-disabled', 'true');
+  }
+
+  /* ───────────────────────────────────────────────────────────────
+     ٢) العدّاد — رقم كبير وكلمة. ينتهي بانتهاء يوم ٣٠ أغسطس،
+        ويختفي بعده من تلقاء نفسه بدل أن يعرض رقمًا سالبًا.
+     ─────────────────────────────────────────────────────────────── */
+  const EVENT_END = new Date('2026-08-30T23:59:59+03:00');
+  const DAY_START = new Date('2026-08-30T00:00:00+03:00');
+
+  const arabicDigits = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+  /** الرقم وكلمته منفصلان: الرقم يُعرض كبيرًا وحده. */
+  function remaining(now) {
+    if (now > EVENT_END) return null;
+    const ar = document.documentElement.lang !== 'en';
+    if (now >= DAY_START) {
+      return ar
+        ? { num: '', label: 'اليوم هو اليوم العالمي للسرد القرآني' }
+        : { num: '', label: 'Today is World Quran Recitation Day' };
+    }
+    const days = Math.ceil((DAY_START - now) / 86400000);
+    // العربية تفرد وتثنّي وتجمع: ثلاث صيغ لا صيغة. والإنجليزية صيغتان.
+    if (!ar) {
+      return days === 1
+        ? { num: '', label: 'One day to World Quran Recitation Day' }
+        : { num: String(days), value: days, label: 'days to World Quran Recitation Day' };
+    }
+    if (days === 1) return { num: '', label: 'بقي يوم واحد على اليوم العالمي للسرد القرآني' };
+    if (days === 2) return { num: '', label: 'بقي يومان على اليوم العالمي للسرد القرآني' };
+    return {
+      num: arabicDigits(days),
+      value: days,
+      label: (days <= 10 ? 'أيام' : 'يومًا') + ' على اليوم العالمي للسرد القرآني',
+    };
+  }
+
+  /** ينفّذ مرّة واحدة حين يبلغ العنصر خطّ الظهور: بمراقبٍ، وبالتمرير
+      احتياطًا — فالقفزة السريعة قد تتخطّى التقاطع فلا يُرصد. */
+  function whenSeen(el, run) {
+    let fired = false, io = null;
+    const onScroll = () => {
+      if (fired || el.getBoundingClientRect().top >= innerHeight * 0.92) return;
+      fired = true;
+      removeEventListener('scroll', onScroll);
+      if (io) io.disconnect();
+      run();
+    };
+    if ('IntersectionObserver' in window) {
+      io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) onScroll(); },
+                                    { threshold: .35 });
+      io.observe(el);
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* الرقم يعدّ صعودًا حتى يستقرّ على المتبقّي: يبدأ العدّ حين يُرى اللوح
+     لا حين تُفتح الصفحة، وإلّا انتهى قبل أن ينزل القارئ إليه. وتباطؤٌ في
+     آخره فيستقرّ الرقم ولا يقف فجأة. */
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let counted = false;
+
+  function countUp(el, target, format) {
+    const DURATION = 1100;
+    let started = null;
+    const frame = (now) => {
+      if (started === null) started = now;
+      const k = Math.min(1, (now - started) / DURATION);
+      el.textContent = format(Math.round((1 - Math.pow(1 - k, 3)) * target));
+      if (k < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+
+  function tickCountdown() {
+    const box = document.getElementById('event-countdown');
+    if (!box) return;
+    const left = remaining(new Date());
+    if (!left) { box.hidden = true; return; }
+
+    const numEl = document.getElementById('cd-num');
+    document.getElementById('cd-label').textContent = left.label;
+    box.hidden = false;
+
+    const format = document.documentElement.lang === 'en' ? String : arabicDigits;
+
+    // بلا رقم (يوم · يومان · اليوم نفسه)، أو بعد أن عُدّ مرّة، أو لمن طلب
+    // تقليل الحركة: يُكتب الرقم كما هو بلا عدّ.
+    if (!left.value || counted || REDUCED) {
+      numEl.textContent = left.num;
+    } else {
+      numEl.textContent = format(0);
+      whenSeen(box, () => { counted = true; countUp(numEl, left.value, format); });
+    }
+
+    setTimeout(tickCountdown, 60 * 60 * 1000);
+  }
+  tickCountdown();
+  addEventListener('sard:lang', tickCountdown);
+
+  /* ───────────────────────────────────────────────────────────────
+     ٣) الوضع الفاتح/الداكن — الاختيار يُحفظ، وأوّل قيمة وضعها سكربت
+        الترويسة قبل أوّل رسم.
+     ─────────────────────────────────────────────────────────────── */
+  (function theme() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const icon = btn.querySelector('.theme-icon');
+    const paint = () => {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      icon.textContent = dark ? '☀' : '☾';
+      const ar = document.documentElement.lang !== 'en';
+      btn.setAttribute('aria-label', ar
+        ? (dark ? 'الوضع الفاتح' : 'الوضع الداكن')
+        : (dark ? 'Light mode' : 'Dark mode'));
+      btn.setAttribute('aria-pressed', String(dark));
+    };
+    paint();
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem('sard:landing-theme', next); } catch (e) { /* وضع خاص */ }
+      paint();
+    });
+  })();
+
+  /* ───────────────────────────────────────────────────────────────
+     ٤) الترويسة وخيط التقدّم — قراءتان في مستمع واحد داخل
+        requestAnimationFrame: التمرير يُطلق عشرات المرّات في الثانية،
+        وقراءة المقاسات في كلّ مرّة هي ما يجعل الصفحة تتلعثم.
+     ─────────────────────────────────────────────────────────────── */
+  (function headerOnScroll() {
+    const header = document.getElementById('site-header');
+    const bar = document.getElementById('scroll-progress');
+    const toTop = document.getElementById('to-top');
+    if (!header) return;
+    let ticking = false;
+
+    const paint = () => {
+      const y = window.scrollY;
+      header.classList.toggle('is-scrolled', y > 8);
+      if (bar) {
+        const span = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (span > 0 ? Math.min(1, y / span) * 100 : 0) + '%';
+      }
+      // بعد شاشة ونصف: يكفي أن يكون الرجوع بالتمرير قد صار مملًّا
+      if (toTop) toTop.classList.toggle('is-shown', y > window.innerHeight * 1.5);
+      ticking = false;
+    };
+
+    /* التمرير نفسه ناعم بـ`scroll-behavior` في CSS، وهي تصير `auto` عند
+       تفضيل تقليل الحركة — فيصحّ السلوكان بلا شرطٍ هنا. */
+    if (toTop) {
+      toTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0 });
+        // يعود التركيز إلى أوّل المستند وإلّا بقي في زرٍّ اختفى للتوّ
+        const skip = document.querySelector('.skip');
+        if (skip) skip.focus({ preventScroll: true });
+      });
+    }
+
+    addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(paint);
+    }, { passive: true });
+
+    paint();
+  })();
+
+  /* ───────────────────────────────────────────────────────────────
+     ٥) الظهور بالتمرير — القائمة نفسها مكتوبة في styles.css تحت
+        `.js` وهي التي تُخفي هذه العناصر ابتداءً، فلا يحجب شيءٌ شيئًا
+        إن لم يعمل هذا السكربت.
+     ─────────────────────────────────────────────────────────────── */
+  (function reveal() {
+    const SELECTOR = '.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, ' +
+                     '.why-list li, .event-inner, ' +
+                     '.download-copy, .download-visual, .final-cta .wrap, ' +
+                     'details, .why-close';
+    const items = document.querySelectorAll(SELECTOR);
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (still || !('IntersectionObserver' in window)) {
+      for (const el of items) el.classList.add('in');
+      return;
+    }
+    const show = (el) => { el.classList.add('in'); io.unobserve(el); };
+
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) show(e.target);
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+    /* شبكة أمان — الصفحة صارت أطول من عشرة آلاف بكسل بعد تقسيم اللقطات
+       إلى أقسام، وفيها صور كسولة. وقفزةٌ سريعة إلى الأسفل، أو صورة تُحمَّل
+       متأخّرةً فتزيح ما تحتها، قد يمرّان بعنصر دون أن يقع تقاطعٌ يُرصَد —
+       فيبقى شفّافًا إلى الأبد لا يراه أحد. فما جاوز خطَّ الظهور يُظهَر
+       ولو لم يُبلّغ المراقب. والخطّ هو خطّ المراقب نفسه (٩٢٪ من الشاشة =
+       هامشه السفليّ ‎-٨٪‎) فلا يسبق أحدُهما الآخر ويختلف الإيقاع. */
+    let sweeping = false;
+    const sweep = () => {
+      sweeping = false;
+      const line = window.innerHeight * 0.92;
+      for (const el of items) {
+        if (el.classList.contains('in')) continue;
+        if (el.getBoundingClientRect().top < line) show(el);
+      }
+    };
+    addEventListener('scroll', () => {
+      if (sweeping) return;
+      sweeping = true;
+      requestAnimationFrame(sweep);
+    }, { passive: true });
+    addEventListener('load', sweep);
+
+    // تدرّج داخل المجموعة الواحدة لا عبر الصفحة: البطاقة الثانية تتأخّر عن
+    // الأولى قليلًا، ولا تتأخّر بطاقة في آخر الصفحة ثانيتين.
+    let previousParent = null, index = 0;
+    for (const el of items) {
+      if (el.parentElement !== previousParent) { previousParent = el.parentElement; index = 0; }
+      el.style.transitionDelay = Math.min(index++, 5) * 60 + 'ms';
+      io.observe(el);
+    }
+  })();
+
+  /* ───────────────────────────────────────────────────────────────
+     ٦) اللغة — عربية وإنجليزية، والنصّ الإنجليزي مكتوب في الصفحة نفسها.
+
+        كل عنصر مترجَم يحمل `data-en`، وكل خاصّية مترجَمة تحمل
+        `data-en-<الخاصية>`. العربية تبقى في المتن فهي الأصل، وأوّل تبديل
+        يحفظ نصّها في `data-ar` ليعود كما كان. لا ملفّ ثانٍ ولا مسار /en:
+        صفحة واحدة تُقرأ بلغتين، فلا يفترق المحتوى بينهما مع الوقت.
+     ─────────────────────────────────────────────────────────────── */
+  (function language() {
+    const KEY = 'sard_lang';
+    const ATTRS = ['alt', 'title', 'aria-label', 'placeholder', 'content'];
+
+    const read = () => (document.documentElement.lang === 'en' ? 'en' : 'ar');
+
+    function paint(lang) {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+      for (const el of document.querySelectorAll('[data-en]')) {
+        // Text only. An element that also holds markup would lose it to a
+        // textContent write — its own runs carry their own `data-en`.
+        if (el.children.length) continue;
+        if (el.dataset.ar === undefined) el.dataset.ar = el.textContent;
+        el.textContent = lang === 'en' ? el.dataset.en : el.dataset.ar;
+      }
+      for (const attr of ATTRS) {
+        const key = 'data-en-' + attr;
+        for (const el of document.querySelectorAll('[' + key + ']')) {
+          const kept = 'data-ar-' + attr;
+          if (!el.hasAttribute(kept)) el.setAttribute(kept, el.getAttribute(attr) || '');
+          el.setAttribute(attr, lang === 'en' ? el.getAttribute(key) : el.getAttribute(kept));
+        }
+      }
+
+      const label = document.getElementById('lang-label');
+      if (label) label.textContent = lang === 'en' ? 'العربية' : 'English';
+      // Whatever draws its own text — the countdown, the theme button — redraws.
+      dispatchEvent(new Event('sard:lang'));
+    }
+
+    const btn = document.getElementById('lang-toggle');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const next = read() === 'ar' ? 'en' : 'ar';
+        try { localStorage.setItem(KEY, next); } catch (e) { /* وضع خاص */ }
+        paint(next);
+      });
+    }
+
+    // The pre-paint script already set <html lang>; this puts the words under it.
+    paint(read());
+  })();
+</script>
+
+</body>
+</html>

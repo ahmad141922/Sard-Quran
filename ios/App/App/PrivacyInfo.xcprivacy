@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  بيان الخصوصية (privacy manifest). ملفّ يقرأه متجر آبل لا التطبيق، وهو نفسه
+  ما يُجاب في استمارة App Privacy — فليقُل الملفّان الشيء نفسه، وهو ما تقوله
+  صفحة الخصوصية في الأداة (`sard/src/AboutPage.tsx`).
+
+  خطوة واحدة يدويّة على الماك: هذا الملفّ ليس في مشروع Xcode بعدُ، لأن إضافته
+  تكتب في `project.pbxproj`. اسحبه في Xcode إلى مجموعة `App` مع تعليم الهدف
+  `App`، وتأكّد أنه ظهر في Build Phases ← Copy Bundle Resources. وبدونها يُبنى
+  التطبيق كما هو، ثم يصل بريد ITMS-91053 بعد أوّل رفع.
+-->
+<plist version="1.0">
+<dict>
+	<!-- لا تتبّع ولا شبكات إعلانات: لا في الأداة ولا في ملحقاتها. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<!-- ما يُرفع حين تُختم الجلسة، لا قبلها: أسماء السارد والمستمع، ورقما
+	     واتساب إن أُدخلا، وبريد المعلّم إن كان مسجّلًا في تجويدو. مرتبط
+	     بالهويّة (اسمٌ هو المقصود بعينه)، ولوظيفة التطبيق وحدها. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeName</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePhoneNumber</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeEmailAddress</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
+	<!-- واجهات «السبب المطلوب»: الجلسة تُحفظ في مخزن الجهاز، وصورة التقرير
+	     تُكتب في مجلّد الذاكرة المؤقّتة ثم تُسلَّم لورقة المشاركة — وقراءة
+	     تاريخ الملفّ جزء من ذلك. الرمزان هما ما تقبله آبل لهذين. -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

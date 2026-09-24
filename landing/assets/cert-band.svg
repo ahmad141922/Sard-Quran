@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 14" width="768" height="14">
+  <!-- شريط هندسي متكرّر: خطّ ومعيَّنات — زخرفة تفصل ولا تزاحم -->
+  <defs>
+    <pattern id="band" x="0" y="0" width="24" height="14" patternUnits="userSpaceOnUse">
+      <path d="M0 7 H24" stroke="#b8860b" stroke-width="0.8" opacity="0.4"/>
+      <path d="M12 2 L17 7 L12 12 L7 7 Z" fill="none" stroke="#b8860b" stroke-width="0.9" opacity="0.7"/>
+    </pattern>
+  </defs>
+  <rect width="768" height="14" fill="url(#band)"/>
+</svg>

@@ -1,0 +1,15 @@
+// Capacitor's plugin modules ask for a Java 21 toolchain, and a machine that
+// happens to have another JDK cannot answer that with what it has: the build
+// fails at configuration time with "no locally installed toolchains match".
+// This plugin gives Gradle a place to fetch the matching JDK from, once, into
+// its own cache — so the build works on a machine with any JDK installed,
+// including a CI runner, rather than on the one machine set up by hand.
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+include ':app'
+include ':capacitor-cordova-android-plugins'
+project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
+
+apply from: 'capacitor.settings.gradle'

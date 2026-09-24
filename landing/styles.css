@@ -1,0 +1,1680 @@
+/*
+  Tajweedoo Design System — Sard Landing
+  ══════════════════════════════════════════════════════════════════
+  الأصل: أخضر هادئ، وذهب لمسةً محدودة، وبياض كثير.
+  الترقية: انضباط الحِرَفة — سلّم مسافات واحد، سلّم خطوط واحد، سلّم
+  ارتفاعات واحد، ومنحنيات حركة واحدة. لا تُكتب قيمة خام في قاعدة
+  إلّا ومعها سبب مكتوب بجانبها.
+
+  كل الاتجاهات منطقية (start/end) لا يمين ويسار، فنسخة `/en` تحتاج
+  ترجمة النصّ وتبديل `dir` فقط — لا إعادة تصميم.
+*/
+
+/* ═══ ١) الرموز ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ── اللون: من لوجو الأداة نفسه ───────────────────────────────── */
+  --green-900: #08352c;
+  --green-800: #0a473b;
+  --green-700: #0e5b4c;
+  --green-600: #14705d;
+  --green-500: #1c8a72;
+  --green-200: #c9e2d9;
+  --green-100: #e3efea;
+  --green-050: #f2f8f5;
+
+  --gold-700: #96631a;
+  --gold-600: #b3781f;
+  --gold-500: #c9862f;
+  --gold-300: #e2ae57;
+  --gold-200: #f0c273;
+  --gold-100: #f7ecd9;
+
+  /* درجات النصّ الأربع — سلّم واحد: أساسي، ثانوي، خافت، أخفت */
+  --ink: #14201c;
+  --ink-soft: #44534d;
+  --ink-muted: #63736c;   /* أُغمِق درجةً ليبلغ التباين 5:1 على الأبيض في مقاس 13px */
+  --ink-faint: #97a49e;
+
+  /* الأسطح */
+  --paper: #ffffff;
+  --paper-off: #f9f8f4;
+  --paper-cream: #fdfbf6;
+  --paper-sunk: #f4f2ec;
+  --rule: #e6e2d9;
+  --rule-strong: #d8d3c7;
+
+  /* الخامة الشفّافة — الترويسة وما يطفو فوق المحتوى */
+  --material: rgba(255, 255, 255, .72);
+  --material-strong: rgba(255, 255, 255, .88);
+  --material-blur: saturate(180%) blur(20px);
+
+  /* ── المسافة: مضاعفات الأربعة، لا أرقام مخترعة ────────────────── */
+  --s1: 4px;   --s2: 8px;   --s3: 12px;  --s4: 16px;
+  --s5: 20px;  --s6: 24px;  --s7: 28px;  --s8: 32px;
+  --s10: 40px; --s12: 48px; --s14: 56px; --s16: 64px;
+  --s20: 80px; --s24: 96px; --s28: 112px;
+
+  /* ── الخطّ: سلّم واحد يُشتقّ منه كل حجم في الصفحة ───────────────
+     العربية تحتاج ارتفاع سطر أعلى من اللاتينية، فالسلّم هنا يقترن
+     بارتفاعَي سطر لا بواحد: مُحكَم للعناوين وواسع للمتن. */
+  --t-display: clamp(31px, 5.2vw, 52px);
+  --t-h1:      clamp(28px, 4.4vw, 44px);
+  --t-h2:      clamp(23px, 3.4vw, 34px);
+  --t-h3:      clamp(17px, 1.6vw, 19px);
+  --t-lede:    clamp(16px, 1.7vw, 19px);
+  --t-body:    17px;
+  --t-sm:      15px;
+  --t-xs:      13px;
+  --t-2xs:     11px;
+
+  --lh-head: 1.45;
+  --lh-body: 1.85;
+
+  /* التتبّع صفر، ولن يكون غيره ما دامت الصفحة عربية: العربية خطّ متّصل،
+     وأيّ تباعد — موجبًا كان أو سالبًا — يفكّ وصل الحروف أو يُركّبها. ما
+     يعطي العنوان العربيّ إحكامه هو الوزن وارتفاع السطر لا التتبّع.
+     تركناهما رمزين لا قيمتين مكتوبتين ليضع لهما `/en` قيمًا سالبة. */
+  --track-display: normal;
+  --track-head:    normal;
+
+  /* ── الاستدارة ────────────────────────────────────────────────── */
+  --r-xs: 8px;  --r-sm: 12px; --r: 16px;
+  --r-md: 20px; --r-lg: 26px; --r-xl: 34px;
+  --r-pill: 999px;
+
+  /* أسماء النسخة الأولى — تبقى لئلّا ينكسر ما بُني عليها */
+  --radius: var(--r);
+  --radius-sm: var(--r-sm);
+  --radius-pill: var(--r-pill);
+
+  /* ── الارتفاع: ظلّان لكل درجة — قريب حادّ وبعيد ناعم ──────────── */
+  --e1: 0 1px 2px rgba(16, 28, 24, .05);
+  --e2: 0 1px 2px rgba(16, 28, 24, .04), 0 4px 10px rgba(16, 28, 24, .05);
+  --e3: 0 2px 4px rgba(16, 28, 24, .04), 0 12px 26px rgba(16, 28, 24, .07);
+  --e4: 0 4px 8px rgba(16, 28, 24, .05), 0 24px 48px rgba(16, 28, 24, .10);
+  --e5: 0 8px 18px rgba(16, 28, 24, .06), 0 40px 80px rgba(16, 28, 24, .14);
+  --e-green: 0 2px 6px rgba(14, 91, 76, .18), 0 10px 24px rgba(14, 91, 76, .20);
+
+  /* ── الحركة ───────────────────────────────────────────────────── */
+  --ease:      cubic-bezier(.4, 0, .2, 1);
+  --ease-out:  cubic-bezier(.22, 1, .36, 1);
+  --dur-1: .14s;
+  --dur-2: .26s;
+  --dur-3: .5s;
+  --dur-4: .7s;
+
+  /* ── العرض ────────────────────────────────────────────────────── */
+  --wrap: 1140px;
+  --wrap-wide: 1280px;   /* قسم المقارنة وحده: خمس صفحات مصحف تحتاج عرضًا */
+  --wrap-narrow: 760px;
+  --gutter: 20px;
+
+  --font: 'IBM Plex Sans Arabic', 'Noto Kufi Arabic', 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (min-width: 720px) { :root { --gutter: 32px; } }
+
+/* ═══ ٢) الأساس ═══════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;   /* الترويسة اللاصقة لا تبتلع عنوان القسم */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 700;
+  line-height: var(--lh-head);
+  letter-spacing: var(--track-head);
+  text-wrap: balance;
+}
+h1 { letter-spacing: var(--track-display); }
+p  { margin: 0 0 1rem; text-wrap: pretty; }
+img, svg { max-width: 100%; height: auto; display: block; }
+
+a { color: inherit; }
+.link {
+  color: var(--green-700); text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-1) var(--ease);
+}
+.link:hover { color: var(--green-600); }
+
+::selection { background: var(--green-100); color: var(--green-900); }
+
+/* حلقة تركيز واحدة للصفحة كلّها — الوصول بلوحة المفاتيح ليس زينة */
+:focus-visible {
+  outline: 2px solid var(--green-600);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+.skip {
+  position: absolute; inset-inline-start: -9999px; top: 0;
+  background: var(--green-700); color: #fff;
+  padding: var(--s3) var(--s5); z-index: 100; font-weight: 600;
+  border-end-end-radius: var(--r-sm);
+}
+.skip:focus { inset-inline-start: 0; }
+
+.wrap {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.wrap-narrow { max-width: var(--wrap-narrow); }
+.wrap-wide   { max-width: var(--wrap-wide); }
+
+/* ═══ ٣) الترويسة — خامة شفّافة تشتدّ بالتمرير ═════════════════════ */
+
+.site-header {
+  position: sticky; top: 0; z-index: 40;
+  background: var(--material);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+  border-bottom: 1px solid transparent;
+  transition: background var(--dur-2) var(--ease),
+              border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease);
+}
+/* عند القمّة لا خطّ ولا ظلّ: الصفحة تبدأ نظيفة. وبأوّل تمرير تنفصل
+   الترويسة عن المحتوى بخيط وظلّ خفيف. */
+.site-header.is-scrolled {
+  background: var(--material-strong);
+  border-bottom-color: var(--rule);
+  box-shadow: var(--e2);
+}
+
+.header-row { display: flex; align-items: center; gap: var(--s4); min-height: 66px; }
+
+.brand {
+  display: flex; align-items: center; gap: var(--s3);
+  text-decoration: none; border-radius: var(--r-sm);
+  transition: opacity var(--dur-1) var(--ease);
+}
+.brand:hover { opacity: .72; }
+.brand img { border-radius: var(--r-xs); }
+.brand-text { display: flex; flex-direction: column; line-height: 1.25; }
+.brand-text strong { font-size: var(--t-sm); letter-spacing: var(--track-head); }
+.brand-text small { font-size: var(--t-2xs); color: var(--ink-muted); }
+
+/* على الشاشات الضيّقة يبقى الشعار وحده: الاسم يزاحم مفتاحَي الوضع واللغة
+   وزرَّ الدعوة على ٣٩٠px. ويُخفى إخفاءً بصريًّا لا حذفًا — فلو حُذف بقي
+   الرابط بلا اسم يقرؤه قارئ الشاشة، إذ صورة الشعار بلا نصّ بديل. */
+@media (max-width: 719px) {
+  .brand-text {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.header-nav {
+  display: none; gap: var(--s1);
+  margin-inline-start: auto; font-size: 14px;
+}
+.header-nav a {
+  text-decoration: none; color: var(--ink-soft);
+  padding: var(--s2) var(--s3); border-radius: var(--r-xs); font-weight: 500;
+  transition: color var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease);
+}
+.header-nav a:hover { color: var(--ink); background: var(--paper-sunk); }
+
+/* رابط التطبيق يحمل نقطة خضراء: هو الجديد في القائمة */
+.header-nav .nav-new { color: var(--green-700); font-weight: 600; }
+.header-nav .nav-new::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green-600); margin-inline-end: 6px; vertical-align: middle;
+}
+
+.header-row .btn { margin-inline-start: auto; }
+.header-nav ~ .btn { margin-inline-start: 0; }
+
+@media (min-width: 940px) { .header-nav { display: flex; } }
+
+/* خيط تقدّم القراءة أسفل الترويسة — عرضه يُكتب بجافاسكربت */
+.scroll-progress {
+  position: absolute; inset-inline-start: 0; bottom: -1px;
+  height: 2px; width: 0;
+  background: linear-gradient(to left, var(--green-600), var(--gold-500));
+  border-end-end-radius: 2px;
+  transition: width .1s linear;
+}
+
+/* ═══ ٤) الأزرار ══════════════════════════════════════════════════ */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--s2);
+  padding: 14px var(--s7);
+  border-radius: var(--r-pill);
+  font-family: inherit; font-weight: 700; font-size: 16px; line-height: 1.2;
+  text-decoration: none; white-space: nowrap;
+  border: 1px solid transparent; cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease),
+              box-shadow var(--dur-2) var(--ease),
+              transform var(--dur-1) var(--ease);
+}
+
+/* الأساسي: أخضر مصمت بحافّة عليا أفتح — الحافّة وحدها تكفي لإحساس
+   الجسم، بلا تدرّج يُرى. */
+.btn-primary {
+  background: var(--green-700); color: #fff;
+  box-shadow: var(--e-green), inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+.btn-primary:hover {
+  background: var(--green-600); transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(14, 91, 76, .22), 0 16px 32px rgba(14, 91, 76, .24),
+              inset 0 1px 0 rgba(255, 255, 255, .16);
+}
+.btn-primary:active { transform: translateY(0) scale(.985); }
+
+.btn-ghost {
+  border-color: var(--rule-strong); color: var(--ink);
+  background: var(--paper); box-shadow: var(--e1);
+}
+.btn-ghost:hover {
+  border-color: var(--green-600); color: var(--green-700);
+  background: var(--green-050);
+  transform: translateY(-1px); box-shadow: var(--e2);
+}
+.btn-ghost:active { transform: translateY(0) scale(.985); }
+
+/* على اللوح الداكن: زجاج لا ورق */
+.btn-glass {
+  background: rgba(255, 255, 255, .09);
+  border-color: rgba(255, 255, 255, .2); color: #fff;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, .16);
+  border-color: rgba(255, 255, 255, .34); transform: translateY(-1px);
+}
+.btn-glass:active { transform: translateY(0) scale(.985); }
+
+.btn-sm { padding: 9px var(--s5); font-size: 14px; }
+.btn-lg { padding: 17px var(--s10); font-size: 17px; }
+
+.cta-row { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s7); }
+.cta-row.center { justify-content: center; }
+
+/* ═══ ٥) الهيرو ═══════════════════════════════════════════════════ */
+
+.hero {
+  position: relative; overflow: hidden;
+  padding: var(--s14) 0 var(--s10);
+  background: var(--paper);
+}
+/* ضوء محيط لا تدرّج: بقعتان واسعتان جدًّا بشفافية منخفضة تعطيان عمقًا
+   للخلفية بلا أن يُرى لهما حدّ. */
+.hero-ambient {
+  position: absolute; inset: -20% -10% auto -10%; height: 130%;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(48% 42% at 78% 8%,  rgba(20, 112, 93, .10) 0%, transparent 68%),
+    radial-gradient(42% 40% at 12% 42%, rgba(201, 134, 47, .07) 0%, transparent 66%);
+}
+.hero > .wrap { position: relative; z-index: 1; }
+.hero-grid { display: grid; gap: var(--s10); }
+
+@media (min-width: 960px) {
+  .hero { padding: var(--s24) 0 var(--s20); }
+  .hero-grid { grid-template-columns: 1fr .84fr; align-items: center; gap: var(--s16); }
+}
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  background: var(--paper); color: var(--green-700);
+  border: 1px solid var(--green-200);
+  border-radius: var(--r-pill);
+  padding: 6px var(--s4) 6px 10px;
+  font-size: var(--t-xs); font-weight: 600;
+  margin: 0 0 var(--s6);
+  box-shadow: var(--e1);
+}
+.eyebrow img { border-radius: 50%; }
+
+/* ارتفاع سطر أقلّ من ارتفاع العناوين العام: كلّما كبر الحجم قلّ ما
+   يحتاجه السطر من فراغ، و١٫٤٥ عند ٥٢px تجعل الجملة مفكوكة لا مُحكَمة.
+   ولا ينزل تحت هذا الحدّ: «انشغالًا» تعلوها ألف وتنوين، و«حضورًا» فوقها
+   تنوين — ولو ضاق السطر لالتقيا. والحدّ محسوب للخطّ البديل أيضًا، فمقاييسه
+   أطول من مقاييس IBM Plex إن لم يُحمَّل. */
+.hero h1 {
+  font-size: var(--t-display);
+  line-height: 1.36;
+  margin-bottom: var(--s5);
+  max-width: 19ch;
+}
+.lede { font-size: var(--t-lede); color: var(--ink-soft); max-width: 46ch; }
+
+/* صفّان في ثلاثة لا سيلٌ يلتفّ: الترتيب معنويّ — راويا عاصم معًا، ثم
+   راويا نافع، فالدوري، فالوعد. ولو تُرك للالتفاف لتغيّر التقسيم بتغيّر
+   عرض الشاشة فذهب المعنى. والأعمدة `max-content` تتّسع لأطول ما فيها،
+   فتستوي رؤوس الصفّين. */
+.riwaya-chips {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: start;
+  gap: var(--s2);
+  list-style: none; padding: 0; margin: var(--s8) 0 0;
+}
+.riwaya-chips li {
+  font-size: var(--t-xs); font-weight: 600; color: var(--green-700);
+  background: var(--green-050); border: 1px solid var(--green-100);
+  border-radius: var(--r-pill); padding: 5px var(--s4);
+  text-align: center;                 /* تمتدّ بعرض عمودها فيُتوسَّط نصّها */
+}
+.riwaya-chips .soon { color: var(--ink-muted); background: transparent; border-style: dashed; }
+
+/* ثلاثة في الصفّ لا تسع الهاتف: أعمدة `max-content` لا تنكمش، فتخرج
+   الشبكة من حدّ الصفحة — ومن جهة البداية في RTL فلا يكشفها تمريرٌ أفقيّ،
+   بل يُقتطع الشريط الثالث اقتطاعًا صامتًا. فعمودان دون ذلك، والترتيب
+   نفسه لا يتغيّر. */
+@media (max-width: 479px) {
+  .riwaya-chips { grid-template-columns: repeat(2, max-content); }
+}
+
+/* شريط الطمأنة تحت الأزرار — ثلاث حقائق قصيرة يفصلها نقاط */
+.hero-trust {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4);
+  list-style: none; padding: 0; margin: var(--s5) 0 0;
+  font-size: var(--t-xs); color: var(--ink-muted);
+}
+.hero-trust li { display: inline-flex; align-items: center; gap: 6px; }
+.hero-trust svg { width: 15px; height: 15px; color: var(--green-600); flex-shrink: 0; }
+
+/* ═══ ٦) إطار الأداة ══════════════════════════════════════════════ */
+
+.hero-shot { display: flex; justify-content: center; }
+
+.device {
+  position: relative;                 /* حاوية الزرّ العائم */
+  width: min(340px, 100%);
+  /* لازمة لا زينة: `.device.night` يعيد تعريف `--ink`، لكن `color` كان قد
+     حُسِب عند <body> فلا يتغيّر بإعادة التعريف وحدها. فما لم يُعلن لونه
+     صراحةً داخل الإطار — كاسم السورة في الشريط — يرث حبرًا داكنًا على
+     أرضية سوداء. إعلانه هنا يجعل كل ما بالداخل يعيد حلّ المتغيّر. */
+  color: var(--ink);
+  background: var(--paper-cream);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--e4);
+}
+/* في الهيرو وحده يُرفع الإطار قليلًا ويُعطى ظلًّا أعمق: هو البطل */
+.hero-shot .device { box-shadow: var(--e5); }
+
+.device-bar {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: 10px var(--s3);
+  border-bottom: 1px solid var(--rule);
+  font-size: 12px; color: var(--ink-muted); background: var(--paper);
+}
+.dot-x {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--green-700); color: #fff;
+  display: grid; place-items: center; font-size: 11px;
+}
+.lock-chip {
+  margin-inline-start: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--rule); border-radius: var(--r-xs);
+  padding: 3px 10px; font-size: 12px; font-weight: 700; color: var(--ink);
+  background: var(--paper);
+}
+.lock { font-size: 10px; filter: grayscale(1); opacity: .7; }
+.bar-icons { letter-spacing: 4px; opacity: .45; }
+
+.device-strip {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px var(--s4); font-size: 12px; font-weight: 700;
+  border-bottom: 1px solid var(--rule); background: var(--paper-cream);
+}
+.strip-meta { font-weight: 500; color: var(--ink-muted); }
+
+.device-page { position: relative; padding: var(--s4) var(--s3) var(--s5); background: var(--paper-cream); }
+.device-page img { width: 100%; }
+
+.device-float {
+  position: absolute; inset-inline-start: var(--s4); bottom: var(--s4);
+  background: var(--green-600); color: #fff;
+  border-radius: var(--r-pill); padding: 7px var(--s4);
+  font-size: 12px; font-weight: 700;
+  box-shadow: 0 6px 16px rgba(14, 91, 76, .3);
+}
+
+.device-notes {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  padding: 10px; border-top: 1px solid var(--rule); background: var(--paper);
+}
+.note {
+  border-radius: var(--r-xs); padding: 10px var(--s1);
+  font-size: 12px; font-weight: 700; text-align: center; color: #fff;
+}
+.note-hesitation { background: #d98324; }
+.note-memory { background: #d64a6a; }
+.note-tajweed { background: #5b5bd6; }
+
+/* الإطار ليلًا — كما تعرضه الأداة بعد العشاء. القيم مُعادة محليًّا لا
+   بقاعدة لكل جزء: الإطار كلّه مبنيّ على هذه المتغيّرات، فتغييرها يقلبه. */
+.device.night {
+  --paper: #17140f;
+  --paper-cream: #12100e;
+  --rule: #2c2822;
+  --ink: #ece7dd;
+  --ink-soft: #c3bcaf;
+  --ink-muted: #8d867a;
+  --green-700: #12706a;
+  border-color: #2c2822;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 12px 32px rgba(0, 0, 0, .35);
+}
+/* الصفحة حبر أسود على ورق أبيض ولا يبلغ جوفَها لون، فتُقلب كلّها كما
+   تفعل الأداة نفسها بدل أن تُطلى. */
+.device.night .device-page img { filter: invert(.895) hue-rotate(180deg); }
+
+/* داخل هيكل الهاتف: الإطار يملأ الشاشة فلا حدّ له ولا استدارة ولا ظلّ */
+.device-flat {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  border: 0; border-radius: 0; box-shadow: none;
+}
+.device-flat .device-page {
+  flex: 1; display: grid; place-items: center; padding: var(--s4) var(--s3);
+}
+.device-flat .device-page img { width: 100%; max-height: 100%; object-fit: contain; }
+
+/* ═══ ٧) هيكل الأقسام ═════════════════════════════════════════════ */
+
+.section { padding: var(--s16) 0; }
+@media (min-width: 940px) { .section { padding: var(--s24) 0; } }
+
+.section-alt { background: var(--paper-off); border-block: 1px solid var(--rule); }
+
+.section-title {
+  font-size: var(--t-h2); text-align: center; margin-bottom: var(--s3);
+}
+.section-title.start { text-align: start; }
+.section-lede {
+  text-align: center; color: var(--ink-soft); max-width: 56ch;
+  margin-inline: auto; margin-bottom: var(--s10); font-size: var(--t-lede);
+}
+.section-lede.start { text-align: start; margin-inline: 0; }
+
+/* عين صغيرة فوق العنوان — تعرّف القسم قبل قراءته */
+/* عين القسم: تعرّفه قبل قراءة عنوانه. بلا تتبّع ولا رفع حالة — العربية
+   لا تُحسِن واحدًا منهما، والذي يميّزها هنا هو اللون وصِغَر الحجم. */
+.section-eyebrow {
+  display: block; text-align: center; margin: 0 0 var(--s2);
+  font-size: var(--t-xs); font-weight: 700;
+  color: var(--green-600);
+}
+.section-eyebrow.start { text-align: start; }
+
+/* ═══ ٨) البطاقات ═════════════════════════════════════════════════ */
+
+.cards { display: grid; gap: var(--s5); margin-top: var(--s12); }
+@media (min-width: 640px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .cards { grid-template-columns: repeat(3, 1fr); gap: var(--s6); } }
+
+.card {
+  background: var(--paper); border: 1px solid var(--rule);
+  border-radius: var(--r-lg); padding: var(--s8) var(--s7);
+  box-shadow: var(--e1);
+}
+/* بلاطة الأيقونة: مربّع مستدير بلون خافت من العائلة — هي مِرساة العين
+   في شبكة من ستّ بطاقات نصّية متشابهة. */
+.card-icon {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; margin-bottom: var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--green-050);
+  border: 1px solid var(--green-100);
+  color: var(--green-600);
+  transition: background-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+}
+.card-icon svg { width: 22px; height: 22px; }
+.card:hover .card-icon { background: var(--green-100); color: var(--green-700); }
+
+.card h3 { font-size: var(--t-h3); margin-bottom: var(--s2); color: var(--ink); }
+.card p { margin: 0; color: var(--ink-soft); font-size: var(--t-sm); }
+
+/* ═══ ٩) أقسام العرض — لقطة كبيرة وكلامها ═════════════════════════
+   كانت ثلاث لقطات بعرض ٣٠٠px في صفّ واحد: الأداة كلّها مضغوطة في شريط،
+   وصفحة المصحف فيها أصغر من أن تُقرأ — وهي أهمّ ما في الصفحة أن يُرى.
+   صارت ثلاثة أقسام، لكلٍّ عرض الصفحة: نصفٌ للّقطة ونصفٌ للكلام، وتتبادلان
+   الجهة قسمًا بعد قسم فلا يصير النزول رتيبًا. */
+
+.showcase { padding: var(--s20) 0; }
+@media (min-width: 960px) { .showcase { padding: var(--s28) 0; } }
+
+.showcase-grid { display: grid; gap: var(--s12); align-items: center; }
+@media (min-width: 960px) {
+  .showcase-grid { grid-template-columns: 1fr 1fr; gap: var(--s16); }
+  /* الجهة الأخرى — ومنطقيّة لا يمين/يسار، فالإنجليزية تقلبها معها */
+  .showcase.flip .showcase-visual { order: -1; }
+}
+
+.showcase-copy { text-align: center; }
+@media (min-width: 960px) { .showcase-copy { text-align: start; } }
+
+.showcase-copy h2 {
+  font-size: var(--t-h2); margin-bottom: var(--s4);
+  max-width: 17ch; margin-inline: auto;
+}
+@media (min-width: 960px) { .showcase-copy h2 { margin-inline: 0; } }
+
+.showcase-lede {
+  font-size: var(--t-lede); color: var(--ink-soft);
+  max-width: 44ch; margin-inline: auto; margin-bottom: 0;
+}
+@media (min-width: 960px) { .showcase-lede { margin-inline: 0; } }
+
+/* النقاط تبدأ من الجهة دائمًا وإن كان ما فوقها موسّطًا: قائمة موسّطة
+   تُقرأ سطرًا سطرًا لا دفعةً واحدة. */
+.showcase-points {
+  list-style: none; margin: var(--s7) 0 0; padding: 0;
+  display: grid; gap: var(--s4); text-align: start;
+  max-width: 46ch; margin-inline: auto;
+}
+@media (min-width: 960px) { .showcase-points { margin-inline: 0; } }
+.showcase-points li {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--s3);
+  align-items: start; font-size: var(--t-sm);
+  color: var(--ink-soft); line-height: 1.75;
+}
+.showcase-points svg {
+  width: 19px; height: 19px; margin-top: 5px;
+  color: var(--green-600); flex-shrink: 0;
+}
+
+/* المسرح: لوح يحمل اللقطة الكبيرة فلا تطفو على بياض بلا حدّ */
+.showcase-stage {
+  width: 100%;
+  display: grid; place-items: center;
+  padding: var(--s8) var(--s5);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--rule);
+  background:
+    radial-gradient(72% 58% at 50% 0%, var(--green-050) 0%, transparent 72%),
+    var(--paper-off);
+}
+@media (min-width: 720px) { .showcase-stage { padding: var(--s12) var(--s10); } }
+/* على القسم الخافت يكون المسرح أبيض، وعلى الأبيض يكون خافتًا — عكسه دائمًا */
+.section-alt .showcase-stage {
+  background:
+    radial-gradient(72% 58% at 50% 0%, var(--green-050) 0%, transparent 72%),
+    var(--paper);
+}
+
+/* الإطار الليليّ يُعرض على مسرح داكن: لوح أبيض حول شاشة سوداء يجعلها ثقبًا */
+.stage-night {
+  border-color: rgba(255, 255, 255, .09);
+  background:
+    radial-gradient(72% 60% at 50% 6%, rgba(20, 112, 93, .26) 0%, transparent 70%),
+    linear-gradient(180deg, #101513 0%, #0b0f0d 100%);
+}
+.section-alt .stage-night { background:
+  radial-gradient(72% 60% at 50% 6%, rgba(20, 112, 93, .26) 0%, transparent 70%),
+  linear-gradient(180deg, #101513 0%, #0b0f0d 100%); }
+
+/* الإطار كبيرًا: كل مقاس داخله يكبر معه، وإلّا بدا كإطار صغير مُكبَّر */
+.device-lg { width: min(430px, 100%); }
+.device-lg .device-bar { padding: 13px var(--s5); font-size: 13px; }
+.device-lg .dot-x { width: 26px; height: 26px; font-size: 12px; }
+.device-lg .lock-chip { font-size: 13px; padding: 5px 12px; }
+.device-lg .device-strip { padding: 11px var(--s5); font-size: 13px; }
+.device-lg .device-page { padding: var(--s5) var(--s4) var(--s6); }
+/* الزرّ العائم يعلو الصفحة، وعند هذا الحجم صار يعلو آخر سطر من المصحف.
+   فيُحجز له أسفلها موضع: الصفحة تُرفع ولا يُغطّى منها حرف. */
+.device-lg:has(.device-float) .device-page { padding-bottom: var(--s20); }
+.device-lg .device-notes { gap: var(--s2); padding: var(--s3); }
+.device-lg .note { padding: 13px var(--s2); font-size: 13px; border-radius: var(--r-sm); }
+.device-lg .device-float { font-size: 13px; padding: 9px var(--s5); bottom: var(--s6); }
+
+/* ورقة التقرير */
+.paper {
+  width: min(300px, 100%); background: var(--paper-cream);
+  border: 1px solid var(--rule); border-radius: var(--r-lg);
+  padding: var(--s5) var(--s5) var(--s4);
+  box-shadow: var(--e3);
+}
+
+/* والورقة كبيرةً كذلك: مقاساتها تكبر معها لا عرضها وحده */
+.paper-lg { width: min(400px, 100%); padding: var(--s7) var(--s7) var(--s6); }
+.paper-lg .paper-head { padding-bottom: var(--s3); margin-bottom: var(--s4); }
+.paper-lg .paper-head strong { font-size: 18px; }
+.paper-lg .paper-head span { font-size: 14px; }
+.paper-lg .paper-rows { font-size: var(--t-sm); }
+.paper-lg .paper-rows > div { padding: 9px 0; }
+.paper-lg .paper-foot { font-size: 14px; margin-top: var(--s5); }
+.paper-head {
+  display: flex; flex-direction: column; gap: 2px;
+  border-bottom: 2px solid var(--green-600);
+  padding-bottom: 10px; margin-bottom: var(--s3);
+}
+.paper-head strong { font-size: var(--t-sm); }
+.paper-head span { font-size: 12px; color: var(--ink-muted); }
+.paper-rows { margin: 0; font-size: var(--t-xs); }
+.paper-rows > div {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 5px 0; border-bottom: 1px dashed var(--rule);
+}
+.paper-rows dt { color: var(--ink-muted); }
+.paper-rows dd { margin: 0; font-weight: 600; text-align: end; }
+.paper-foot {
+  margin: var(--s4) 0 0; text-align: center; font-size: 12px;
+  color: var(--green-700); line-height: 2;
+}
+
+/* ═══ ١٠) التطبيق على Google Play ═════════════════════════════════
+   كان اللوح داكنًا في الوضعين، فبدا في الصفحة الفاتحة ثقبًا لا قسمًا —
+   والمناسبةُ وحدها هي التي تستحقّ أن تخالف الوضع، لأن لها تاريخًا ينتهي.
+   فصار هذا اللوح يتبع الوضع: كلّ لون فيه مشتقّ من الرموز الستّة أدناه،
+   وقلبُه إلى الداكن إعادةُ تعريفها لا إعادةُ كتابة قواعده.
+
+   والشارتان تبقيان داكنتين في الوضعين: هكذا صُمّمت شارة Google Play،
+   وهي على الفاتح كما تُرى في أي صفحة أخرى. */
+
+.download {
+  --dl-ink:        var(--ink);
+  --dl-ink-soft:   var(--ink-soft);
+  --dl-ink-faint:  var(--ink-muted);
+  --dl-accent:     var(--green-700);
+  --dl-chip-bg:    var(--paper);
+  --dl-chip-line:  var(--green-200);
+  --dl-edge:       var(--rule);
+  --dl-sheen:      transparent;
+  --dl-glow:       rgba(20, 112, 93, .20);
+  --dl-bg:
+    radial-gradient(88% 68% at 14% 0%,   var(--green-050) 0%, transparent 62%),
+    radial-gradient(72% 62% at 90% 100%, var(--gold-100)  0%, transparent 58%),
+    var(--paper-off);
+
+  position: relative; overflow: hidden;
+  padding: var(--s20) 0;
+  color: var(--dl-ink);
+  background: var(--dl-bg);
+  border-block: 1px solid var(--dl-edge);
+}
+
+[data-theme='dark'] .download {
+  --dl-ink:       #fff;
+  --dl-ink-soft:  rgba(238, 242, 240, .76);
+  --dl-ink-faint: rgba(238, 242, 240, .5);
+  --dl-accent:    var(--gold-200);
+  --dl-chip-bg:   rgba(255, 255, 255, .07);
+  --dl-chip-line: rgba(255, 255, 255, .15);
+  --dl-edge:      rgba(255, 255, 255, .09);
+  --dl-sheen:     rgba(255, 255, 255, .06);
+  --dl-glow:      rgba(20, 112, 93, .42);
+  --dl-bg:
+    radial-gradient(88% 68% at 14% 0%,   rgba(20, 112, 93, .34) 0%, transparent 62%),
+    radial-gradient(72% 62% at 90% 100%, rgba(201, 134, 47, .18) 0%, transparent 60%),
+    linear-gradient(180deg, #0d1210 0%, #0a0e0c 58%, #080b0a 100%);
+}
+
+/* بريق علوي واحد يمنع اللوح الداكن من أن يبدو مسطّحًا — وهو شفّاف في الفاتح */
+.download::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(56% 40% at 50% 0%, var(--dl-sheen), transparent 72%);
+}
+.download > .wrap { position: relative; z-index: 1; }
+
+@media (min-width: 940px) { .download { padding: var(--s24) 0; } }
+
+.download-grid { display: grid; gap: var(--s14); align-items: center; }
+@media (min-width: 940px) {
+  .download-grid { grid-template-columns: 1.05fr .95fr; gap: var(--s16); }
+}
+
+.download-copy { text-align: center; }
+@media (min-width: 940px) { .download-copy { text-align: start; } }
+
+.download .eyebrow {
+  background: var(--dl-chip-bg);
+  border-color: var(--dl-chip-line);
+  color: var(--dl-accent);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.download h2 {
+  font-size: var(--t-h2); color: var(--dl-ink); margin-bottom: var(--s4);
+  max-width: 18ch; margin-inline: auto;
+}
+@media (min-width: 940px) { .download h2 { margin-inline: 0; } }
+
+.download-lede {
+  color: var(--dl-ink-soft); font-size: var(--t-lede);
+  max-width: 46ch; margin-inline: auto;
+}
+@media (min-width: 940px) { .download-lede { margin-inline: 0; } }
+
+.download-facts {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--s2); list-style: none; padding: 0; margin: var(--s6) 0 0;
+}
+@media (min-width: 940px) { .download-facts { justify-content: flex-start; } }
+.download-facts li {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--t-xs); font-weight: 600; color: var(--dl-ink);
+  background: var(--dl-chip-bg);
+  border: 1px solid var(--dl-chip-line);
+  border-radius: var(--r-pill); padding: 6px var(--s3) 6px 10px;
+}
+.download-facts svg { width: 14px; height: 14px; color: var(--dl-accent); flex-shrink: 0; }
+
+/* صفّ الشارتين: شارة المتجر وشارة المتصفّح بالهيئة نفسها — زوج مقصود
+   لا زرّ إلى جوار شارة. */
+.badge-row {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--s3); margin: var(--s8) 0 0;
+}
+@media (min-width: 940px) { .badge-row { justify-content: flex-start; } }
+
+.store-badge {
+  display: block; width: 196px; max-width: 62vw;
+  border-radius: 9px;
+  transition: transform var(--dur-2) var(--ease-out),
+              box-shadow var(--dur-2) var(--ease-out),
+              filter var(--dur-2) var(--ease);
+}
+.store-badge svg { width: 100%; height: auto; }
+
+/* الشارة مرسومة لاتجاهٍ بعينه: العلامة في جهة والنصّ في الأخرى، و
+   `text-anchor: start` ينقلب معنى جهته بانقلاب اتجاه الصفحة. فتخطيط واحد
+   يعني أن النصّ يخرج من حدّ الشارة في اللغة الأخرى ويعبر فوق العلامة —
+   ولذلك تخطيطان، يُعرض منهما ما يوافق لغة الصفحة. */
+[lang='ar'] .badge-en,
+[lang='en'] .badge-ar { display: none; }
+.store-badge { box-shadow: var(--e2); }
+.store-badge:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.store-badge:active { transform: translateY(0) scale(.985); }
+/* شارة بلا رابط لا تتظاهر بأنها زرّ */
+.store-badge:not([href]) { cursor: default; }
+.store-badge:not([href]):hover { transform: none; filter: none; box-shadow: none; }
+.play-badge:hover { box-shadow: 0 12px 28px rgba(0, 0, 0, .5); }
+.web-badge:hover  { box-shadow: 0 12px 28px rgba(14, 91, 76, .45); }
+
+.download-note {
+  margin: var(--s6) 0 0; font-size: var(--t-xs);
+  color: var(--dl-ink-faint); max-width: 44ch; margin-inline: auto;
+}
+@media (min-width: 940px) { .download-note { margin-inline: 0; } }
+
+/* ── هيكل الهاتف ─────────────────────────────────────────────────
+   نسب هاتف حقيقي (9:19.5) لا مستطيل مخترع، وحافّة معدنية بخيط ضوء
+   في أعلاها — هي وحدها ما يفصله عن الخلفية السوداء. */
+.download-visual { position: relative; display: flex; justify-content: center; }
+
+.phone-glow {
+  position: absolute; inset: -14% -20%;
+  background: radial-gradient(50% 50% at 50% 50%, var(--dl-glow) 0%, transparent 70%);
+  filter: blur(30px); pointer-events: none;
+}
+
+.phone {
+  position: relative; z-index: 1;
+  width: min(292px, 76vw); aspect-ratio: 9 / 19.2;
+  padding: 9px;
+  border-radius: 46px;
+  background: linear-gradient(165deg, #40453f 0%, #1b1f1d 26%, #141715 70%, #2a2e2b 100%);
+  box-shadow:
+    0 2px 3px rgba(255, 255, 255, .1) inset,
+    0 -2px 3px rgba(0, 0, 0, .5) inset,
+    0 30px 60px rgba(0, 0, 0, .55),
+    0 60px 120px rgba(0, 0, 0, .45);
+}
+/* كاميرا ثقب — التفصيلة التي تجعل الهيكل يُقرأ كهاتف أندرويد */
+.phone::after {
+  content: ''; position: absolute; z-index: 3;
+  top: 20px; left: 50%; transform: translateX(-50%);
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #050706; box-shadow: 0 0 0 1px rgba(255, 255, 255, .07);
+}
+.phone-screen {
+  position: relative; height: 100%; overflow: hidden;
+  border-radius: 38px; background: #12100e;
+}
+
+/* ═══ ١١) الشهادة ═════════════════════════════════════════════════
+   القسم الوحيد الذي يُعرض فيه شيء بحجمه الحقيقي تقريبًا: الشهادة هي
+   مخرج الأداة الذي يخرج من الشاشة إلى يد الطالب، فلا تُصغَّر إلى بطاقة. */
+
+.cert-section { padding-bottom: var(--s20); }
+
+.cert-stage {
+  margin-top: var(--s8);
+  padding: var(--s7) var(--s4);
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(70% 60% at 50% 0%, var(--green-050) 0%, transparent 70%),
+    var(--paper-off);
+  border: 1px solid var(--rule);
+}
+@media (min-width: 720px) { .cert-stage { padding: var(--s12) var(--s8); } }
+
+/* الوثيقة نفسها — ورقة مطبوعة يُكتب فوقها ما يتغيّر وحده.
+
+   كل مقاس هنا نسبة من عرض الورقة (`cqw`) لا رقم ثابت: الورقة تصغر مع
+   الشاشة، والسطر الذي لا يصغر معها يخرج عنها. والقياس الاحتياطي بالـ`vw`
+   مكتوب قبله لمتصفّح لا يعرف وحدات الحاويات. */
+.cert {
+  position: relative;
+  max-width: 840px; margin-inline: auto;
+  aspect-ratio: 1491 / 1055;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  box-shadow: var(--e5);
+  container-type: inline-size;
+}
+.cert-sheet { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* على الجوال: الورقة عرضيّة، وتصغيرها إلى عرض الشاشة يجعل خطّها ستّة
+   بكسلات — صورةٌ لا تُقرأ. فتبقى بعرض يُقرأ وتُسحب أفقيًّا داخل إطارها
+   وحده، لا تجرّ الصفحة معها. */
+@media (max-width: 719px) {
+  .cert-stage { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cert { min-width: 560px; }
+}
+
+/* ما فوق الورقة: مواضعه نِسَبٌ من ارتفاعها، كما في الأداة حرفًا بحرف. */
+.cert > :not(.cert-sheet) {
+  position: absolute;
+  /* يمين ويسار حقيقيّان لا منطقيّان: الورقة لا تنقلب مع اتجاه الكتابة. */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 74%;
+  margin: 0;
+  text-align: center;
+  line-height: 1.85;
+}
+.cert .cert-date {
+  top: 11.5%;
+  left: auto; right: 10%;
+  transform: none; width: 22%;
+  font-size: 1.25vw; font-size: 1.31cqw;
+  color: var(--ink-muted); line-height: 1.9;
+}
+.cert .cert-date span { display: block; }
+.cert .cert-lead {
+  top: 30%;
+  font-size: 1.7vw; font-size: 1.79cqw;
+  color: var(--ink-muted);
+}
+.cert .cert-name {
+  top: 36.5%;
+  font-size: 3.9vw; font-size: 4.05cqw;
+  color: var(--green-700); line-height: 1.5;
+}
+.cert .cert-sentence {
+  top: 48%;
+  font-size: 1.95vw; font-size: 2.02cqw;
+}
+.cert .cert-sentence b, .cert .cert-meta b { font-weight: 700; }
+.cert .cert-meta {
+  top: 55.5%;
+  font-size: 1.6vw; font-size: 1.67cqw;
+  color: var(--ink-muted);
+}
+.cert .cert-meta b { color: var(--ink); }
+.cert .cert-dua {
+  top: 63.5%;
+  width: 56%;
+  color: var(--green-700); font-weight: 700;
+  font-size: 1.8vw; font-size: 1.9cqw; line-height: 1.95;
+}
+.cert .cert-qr {
+  top: 63%;
+  left: auto; right: 9%;
+  transform: none; width: 10%;
+}
+.cert .cert-qr img { width: 86%; height: auto; margin-inline: auto; display: block; }
+.cert .cert-qr > span {
+  display: block;
+  font-size: 0.95vw; font-size: 1.01cqw;
+  color: var(--ink-muted); line-height: 1.5; margin-top: 3%;
+}
+
+.cert-points { display: grid; gap: var(--s3); list-style: none; padding: 0; margin: var(--s7) 0 0; }
+@media (min-width: 780px) { .cert-points { grid-template-columns: repeat(3, 1fr); gap: var(--s5); } }
+.cert-points li {
+  font-size: 14.5px; color: var(--ink-soft); line-height: 1.9;
+  border-inline-start: 3px solid var(--gold-500); padding-inline-start: var(--s3);
+}
+.cert-points strong { display: block; color: var(--ink); }
+
+/* ═══ ١٢) الخطوات ═════════════════════════════════════════════════ */
+
+.steps { list-style: none; padding: 0; margin: var(--s12) 0 0; display: grid; gap: var(--s8); }
+@media (min-width: 840px) { .steps { grid-template-columns: repeat(3, 1fr); gap: var(--s12); } }
+
+/* خطّ يعلو كل خطوة: يجعل الثلاث تُقرأ كمسار لا كثلاث فقرات متجاورة */
+.steps li {
+  position: relative; padding-top: var(--s6);
+  border-top: 2px solid var(--green-100);
+}
+.step-n {
+  display: grid; place-items: center;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--paper); color: var(--green-700);
+  border: 1px solid var(--green-200);
+  box-shadow: var(--e2);
+  font-weight: 700; font-size: 20px; margin-bottom: var(--s5);
+}
+.steps h3 { font-size: var(--t-h3); margin-bottom: var(--s2); }
+.steps p { color: var(--ink-soft); font-size: var(--t-sm); margin: 0; }
+
+/* ═══ ١٣) الروايات ════════════════════════════════════════════════ */
+
+/* خمس بطاقات لا ثلاث: تتدفّق بنفسها من واحدة إلى خمس بلا نقطة كسر
+   مكتوبة، فإضافة رواية سادسة لا تحتاج سطر CSS. */
+/* القسم مقارنة: الصفحة الأولى نفسها في الخمس. فما يشترك فيه الجميع
+   نزل إلى سطر واحد تحت الشبكة، ولم يعد يُكتب خمس مرّات — وبقي في كل
+   عنصر ما يفترق به وحده. والصفحة هي العنصر: ورقةٌ قائمة بذاتها لا صورةٌ
+   داخل بطاقة، فالإطار المزدوج كان يبعد العين عن المصحف. */
+.riwayat {
+  display: grid; gap: var(--s6) var(--s5);
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  list-style: none; margin: var(--s12) 0 0; padding: 0;
+  counter-reset: riwaya;
+}
+
+.riwaya { text-align: center; }
+
+/* ورقة المصحف: حاشية كريميّة وخيط داخليّ كحاشية الطبعة المطبوعة */
+.riwaya-leaf {
+  margin: 0 0 var(--s4);
+  padding: var(--s3);
+  background: var(--paper-cream);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  box-shadow: var(--e2);
+  transition: transform var(--dur-2) var(--ease-out),
+              box-shadow var(--dur-2) var(--ease-out),
+              border-color var(--dur-2) var(--ease);
+}
+.riwaya-leaf img { width: 100%; border-radius: 4px; }
+.riwaya:hover .riwaya-leaf {
+  transform: translateY(-5px);
+  border-color: var(--green-200);
+  box-shadow: var(--e4);
+}
+
+.riwaya h3 { font-size: var(--t-h3); margin-bottom: var(--s1); }
+
+/* العدد وعدّه: هما وحدهما ما يفترق فيه الخمس، فهما وحدهما ما يُلوَّن */
+.riwaya-count {
+  margin: 0; font-size: var(--t-xs); color: var(--ink-muted);
+  line-height: 1.7;
+}
+.riwaya-count b {
+  color: var(--green-700); font-weight: 700;
+  font-size: var(--t-sm); font-variant-numeric: tabular-nums;
+}
+
+/* المشترَك مرّةً واحدة: الناشر وعدد الصفحات */
+.riwayat-shared {
+  margin: var(--s10) 0 0; text-align: center;
+  font-size: var(--t-xs); color: var(--ink-muted);
+  max-width: 64ch; margin-inline: auto; line-height: 1.9;
+}
+.riwayat-shared strong { color: var(--ink-soft); }
+
+.fineprint { font-size: var(--t-xs); color: var(--ink-muted); text-align: center; margin-top: var(--s7); }
+
+/* ═══ ١٤) لماذا ═══════════════════════════════════════════════════ */
+
+.why-grid { display: grid; gap: var(--s10); }
+@media (min-width: 960px) { .why-grid { grid-template-columns: .88fr 1.12fr; gap: var(--s16); align-items: start; } }
+
+/* السؤال يلتصق وإجاباته تمرّ تحته — على الشاشة الواسعة وحدها، وبارتفاع
+   الترويسة اللاصقة زائدَ هامش، وإلّا اختفى تحتها. */
+@media (min-width: 960px) {
+  .why-intro { position: sticky; top: 104px; }
+}
+
+.why-close {
+  margin: var(--s6) 0 0; padding-inline-start: var(--s4);
+  border-inline-start: 3px solid var(--gold-500);
+  font-size: var(--t-sm); font-weight: 600; color: var(--ink);
+}
+
+/* ستّ دعاوى يفصلها خيط، لا ستّ بطاقات محاطة: الإطارات كانت تزاحم بعضها
+   فتُقرأ القائمة شبكةً، وهي إنما تُقرأ سطرًا بعد سطر. */
+.why-list { list-style: none; margin: 0; padding: 0; }
+.why-list li {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--s5);
+  align-items: start;
+  padding: var(--s6) 0;
+  border-top: 1px solid var(--rule);
+}
+.why-list li:first-child { border-top: 0; padding-top: 0; }
+.why-list li:last-child { padding-bottom: 0; }
+
+.why-n {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--gold-100); color: var(--gold-700);
+  font-size: var(--t-xs); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.why-text { display: grid; gap: var(--s1); }
+.why-list strong { font-size: 17px; color: var(--ink); line-height: 1.5; }
+.why-list span { font-size: var(--t-sm); line-height: 1.8; color: var(--ink-soft); }
+
+/* ═══ ١٥) المناسبة — لوح داكن وحده ════════════════════════════════
+   ليست قسمًا كبقيّة الأقسام: هي المناسبة التي جاء منها أكثر الزوّار،
+   ولها تاريخ ينتهي. ولأنها داكنة أصلًا فهي لا تتغيّر بالوضعين. */
+
+.event {
+  position: relative; overflow: hidden;
+  padding: var(--s14) 0 var(--s16);
+  color: #f3eee3;
+  background:
+    radial-gradient(115% 85% at 82% 12%, rgba(20, 112, 93, .55) 0%, transparent 58%),
+    radial-gradient(85% 75% at 8% 92%, rgba(179, 120, 31, .26) 0%, transparent 55%),
+    linear-gradient(158deg, #0b473b 0%, #0d5245 42%, #072a23 100%);
+  border-block: 1px solid rgba(201, 134, 47, .4);
+}
+.event::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(58% 42% at 50% 0%, rgba(255, 255, 255, .07), transparent 72%);
+}
+
+/* نجمة ثمانية مكرَّرةً وخافتةً جدًّا، وتخفت عند الحافّتين فلا يبدو النقش
+   مقطوعًا. كانت تستعير `assets/cert-corner.svg`؛ فلمّا استُبدلت لوحة
+   الشهادة بصورة جاهزة حُذف ذلك الملفّ وبقيت هذه القاعدة تطلبه — ٤٠٤
+   صامت لأن النقش زينة لا يُفتقد. فرُسمت هنا مضمَّنةً: لا ملفّ يُفقد ولا
+   طلب يُخفق. */
+.event-pattern {
+  position: absolute; inset: 0; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 84 84%27%3E%3Cg fill=%27none%27 stroke=%27%23f3eee3%27 stroke-width=%272.4%27%3E%3Crect x=%2725%27 y=%2725%27 width=%2734%27 height=%2734%27/%3E%3Crect x=%2725%27 y=%2725%27 width=%2734%27 height=%2734%27 transform=%27rotate(45 42 42)%27/%3E%3C/g%3E%3C/svg%3E") 0 0 / 84px 84px repeat;
+  opacity: .04;
+  -webkit-mask-image: radial-gradient(80% 70% at 50% 50%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(80% 70% at 50% 50%, #000 30%, transparent 78%);
+}
+
+.event > .wrap { position: relative; z-index: 1; }
+
+@media (min-width: 940px) { .event { padding: var(--s20) 0; } }
+
+.event-inner { display: grid; gap: var(--s8); align-items: center; justify-items: center; }
+/* الشعار أوّلًا في الترتيب لأنه أوّل ما يُعرَّف على الجوّال، أمّا على الشاشة
+   الواسعة فيُزاح إلى الطرف الآخر: العنوان حينئذ يبدأ من حافّة القراءة كبقيّة
+   عناوين الصفحة، والشعار يملأ الفراغ الذي كان تحته. */
+@media (min-width: 900px) {
+  .event-inner { grid-template-columns: 1fr auto; gap: var(--s14); justify-items: start; }
+  .event-copy  { order: 1; }
+  .event-marks { order: 2; }
+}
+
+.event-marks { display: flex; align-items: center; justify-content: center; }
+.event-emblem {
+  width: min(240px, 52vw);
+  filter: drop-shadow(0 14px 34px rgba(0, 0, 0, .4));
+}
+
+.event-copy { text-align: center; }
+@media (min-width: 900px) { .event-copy { text-align: start; } }
+
+/* التاريخان معًا: الميلاديّ يعرفه الجميع والهجريّ هو تاريخ المناسبة */
+.event-copy .event-date {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3);
+  justify-content: center;
+  margin: 0 0 var(--s3); font-size: var(--t-xs); font-weight: 700;
+  color: var(--gold-200);
+}
+@media (min-width: 900px) { .event-copy .event-date { justify-content: flex-start; } }
+.event-hijri {
+  font-weight: 500; color: rgba(243, 238, 227, .6);
+  padding-inline-start: var(--s3);
+  border-inline-start: 1px solid rgba(240, 194, 115, .35);
+}
+
+/* شريط المعيَّنات نفسه الذي يفصل في الشهادة */
+.event-rule {
+  width: 172px; height: 12px; margin: var(--s4) auto var(--s5);
+  opacity: .75;
+}
+@media (min-width: 900px) { .event-rule { margin-inline: 0; } }
+.event-copy h2 { font-size: var(--t-h2); margin-bottom: var(--s4); color: #fff; }
+.event-copy p { color: rgba(243, 238, 227, .82); max-width: 52ch; margin-inline: auto; }
+@media (min-width: 900px) { .event-copy p { margin-inline: 0; } }
+.event-copy strong { color: var(--gold-200); }
+
+.event-facts {
+  display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center;
+  list-style: none; padding: 0; margin: 0 0 6px;
+}
+@media (min-width: 900px) { .event-facts { justify-content: flex-start; } }
+.event-facts li {
+  font-size: var(--t-xs); font-weight: 600; color: #f3eee3;
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: var(--r-pill); padding: 5px var(--s4);
+}
+
+/* الزرّ والعدّاد في صفّ واحد: كانا فوق بعضهما فبدا الرقم سائبًا */
+.event-actions {
+  display: flex; flex-wrap: wrap; align-items: stretch;
+  justify-content: center; gap: var(--s4);
+  margin-top: var(--s7);
+}
+@media (min-width: 900px) { .event-actions { justify-content: flex-start; } }
+
+/* العدّاد لوحٌ لا سطر: الرقم كبير وكلمته تحته — وبجانبه كان «١٠» يلتصق
+   بـ«أيام» فيُقرآن كلمةً واحدة. */
+.event-countdown {
+  display: flex; align-items: center; gap: var(--s4);
+  padding: var(--s3) var(--s6);
+  border: 1px solid rgba(240, 194, 115, .4);
+  border-radius: var(--r-lg);
+  background: rgba(0, 0, 0, .24);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.cd-num {
+  font-size: clamp(34px, 5.4vw, 48px); font-weight: 700; line-height: 1;
+  color: var(--gold-200); text-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  font-variant-numeric: tabular-nums;
+}
+/* قد يعود العدّاد بلا رقم: «بقي يوم واحد» و«يومان» و«اليوم هو اليوم».
+   فالرقم الفارغ يُطوى ولا يترك فجوةً إلى جانب كلمته. */
+.cd-num:empty { display: none; }
+.cd-label {
+  font-size: var(--t-xs); font-weight: 600; line-height: 1.5;
+  color: rgba(243, 238, 227, .88);
+  max-width: 14ch; text-align: start;
+}
+
+/* الزرّ على اللوح الداكن ذهبيّ بنصّ داكن: الأخضر يذوب في الأرضية،
+   والأبيض يجعله لوحًا ثالثًا. */
+.btn-gold { background: var(--gold-300); color: #2a1c05; box-shadow: 0 10px 24px rgba(0, 0, 0, .3); }
+.btn-gold:hover { background: var(--gold-200); color: #2a1c05; transform: translateY(-1px); }
+.btn-gold:active { transform: translateY(0) scale(.985); }
+
+.event-copy .fineprint {
+  text-align: center; margin-top: var(--s6); max-width: 52ch;
+  color: rgba(243, 238, 227, .55);
+}
+@media (min-width: 900px) { .event-copy .fineprint { text-align: start; } }
+
+/* ═══ ١٦) الأسئلة ═════════════════════════════════════════════════ */
+
+details {
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  padding: 0 var(--s5);
+  margin-bottom: var(--s2);
+  transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
+}
+details:hover { border-color: var(--rule-strong); }
+details[open] { border-color: var(--green-200); box-shadow: var(--e2); }
+
+summary {
+  cursor: pointer; list-style: none;
+  padding: var(--s4) 0; font-weight: 600; font-size: 16px;
+  display: flex; justify-content: space-between; align-items: center; gap: var(--s3);
+}
+summary::-webkit-details-marker { display: none; }
+/* علامة زائد مرسومة بخطّين: تدور إلى ناقص بدل أن يُستبدل المحرف */
+summary::after {
+  content: ''; flex-shrink: 0;
+  width: 12px; height: 12px;
+  background:
+    linear-gradient(currentColor, currentColor) center/12px 1.7px no-repeat,
+    linear-gradient(currentColor, currentColor) center/1.7px 12px no-repeat;
+  color: var(--green-700);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+details[open] summary::after { transform: rotate(135deg); }
+details p { color: var(--ink-soft); font-size: var(--t-sm); margin: 0 0 var(--s4); max-width: 62ch; }
+
+/* ═══ ١٧) عن تجويدوو والخاتمة ═════════════════════════════════════ */
+
+.about { text-align: center; }
+.about-line { font-size: var(--t-body); color: var(--ink-soft); max-width: 52ch; margin-inline: auto; }
+
+.final-cta {
+  position: relative; overflow: hidden;
+  padding: var(--s20) 0 var(--s24); text-align: center;
+  background:
+    radial-gradient(56% 70% at 50% 0%, var(--green-050) 0%, transparent 72%),
+    var(--paper);
+}
+/* الشعار لوحٌ كريميّ مربّع، فزواياه تُدوّر كما دُوّرت في الترويسة والذيل —
+   وبنسبتهما نفسها: ٣٦ ← ٨، و٤٤ ← ١٠، فـ٥٦ ← ١٢. */
+.final-cta img { margin-inline: auto; margin-bottom: var(--s5); border-radius: var(--r-sm); }
+.final-cta h2 { font-size: var(--t-h2); margin-bottom: var(--s3); max-width: 22ch; margin-inline: auto; }
+.final-cta p { color: var(--ink-soft); }
+
+/* المجّانية آخر ما يُقرأ في الصفحة، فتُفرد سطرًا وتُلوَّن بلون الأداة */
+.final-free {
+  display: block; margin-top: var(--s2);
+  color: var(--green-700); font-weight: 600; font-size: var(--t-sm);
+}
+
+.site-footer { border-top: 1px solid var(--rule); padding: var(--s10) 0 var(--s8); background: var(--paper-off); }
+
+/* عمودان: الصانع في جهة، والمصنوع منسوبًا إليه في الأخرى. وبينهما فاصل
+   يقرأ العين أنهما وجهان لأمر واحد لا كتلتان متجاورتان. */
+.footer-top {
+  display: grid; gap: var(--s8);
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  padding-bottom: var(--s8);
+  border-bottom: 1px solid var(--rule);
+}
+
+.footer-maker {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--s3);
+  padding-inline-start: var(--s8);
+  border-inline-start: 1px solid var(--rule);   /* الفاصل مع العمود الثاني */
+}
+.footer-logo { display: block; width: fit-content; }
+.footer-logo img { width: 150px; height: auto; }
+.footer-about { margin: 0; font-size: var(--t-sm); line-height: 1.75; color: var(--ink-soft); max-width: 42ch; }
+.footer-maker .btn { margin-top: var(--s1); }
+
+/* النسبة: الشعار فالاسم فالجهة المُصدِرة — سُلَّمٌ نازل لا سطرٌ واحد */
+.footer-issued {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+}
+.footer-issued > img { margin-bottom: var(--s2); border-radius: 10px; }
+.issued-name { margin: 0; font-weight: 700; font-size: var(--t-base); color: var(--ink); }
+.issued-by { margin: 0; font-size: var(--t-sm); color: var(--ink-soft); }
+.issued-by .link { font-weight: 600; }
+.issued-note {
+  margin: var(--s3) 0 0; font-size: var(--t-xs); line-height: 1.7;
+  color: var(--ink-muted); max-width: 34ch;
+}
+
+
+@media (max-width: 719px) {
+  .footer-top { grid-template-columns: 1fr; gap: var(--s7); }
+  /* الفاصل يصير أفقيًّا حين يصير الترتيب رأسيًّا */
+  .footer-maker {
+    padding-inline-start: 0; border-inline-start: 0;
+    padding-top: var(--s7); border-top: 1px solid var(--rule);
+  }
+}
+
+/* حسابات تجويدوو: ثلاث أيقونات في صفّ واحد وسط الذيل. حدٌّ خافت ودائرة
+   تجعلها أهدافًا للّمس بحجمها المطلوب (٤٤px) لا رسومًا صغيرة تُصاد. */
+.footer-social {
+  display: flex; justify-content: center; gap: var(--s3);
+  list-style: none; margin: var(--s7) 0 0; padding: 0;
+}
+.footer-social a {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: var(--r-pill); border: 1px solid var(--rule);
+  color: var(--ink-soft); background: var(--paper);
+  transition: color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+              background-color var(--dur-2) var(--ease), transform var(--dur-2) var(--ease-out);
+}
+.footer-social a:hover {
+  color: var(--green-700); border-color: var(--green-200);
+  background: var(--green-050); transform: translateY(-2px);
+}
+.footer-social svg { width: 20px; height: 20px; }
+
+.site-footer .fineprint { margin: var(--s6) 0 0; text-align: center; }
+
+/* ═══ قسم آيفون ═══════════════════════════════════════════════════ */
+
+/* نظير قسم أندرويد لا نسخة منه: الأرضيّة تبدأ ذهبيّة من الجهة المقابلة،
+   فيُقرأ القسمان متجاورين كوجهين لا كصورة مكرّرة. */
+.download-ios {
+  --dl-glow: rgba(179, 120, 31, .20);
+  --dl-bg:
+    radial-gradient(88% 68% at 86% 0%,  var(--gold-100)  0%, transparent 62%),
+    radial-gradient(72% 62% at 10% 100%, var(--green-050) 0%, transparent 58%),
+    var(--paper-off);
+  border-block-start: 0;               /* يلتحم بقسم أندرويد قبله */
+}
+[data-theme='dark'] .download-ios {
+  --dl-glow: rgba(201, 134, 47, .34);
+  --dl-bg:
+    radial-gradient(88% 68% at 86% 0%,  rgba(201, 134, 47, .26) 0%, transparent 62%),
+    radial-gradient(72% 62% at 10% 100%, rgba(20, 112, 93, .30) 0%, transparent 60%),
+    linear-gradient(180deg, #0a0e0c 0%, #0d1210 58%, #0a0e0c 100%);
+}
+/* والهاتف في الجهة المقابلة لهاتف أندرويد */
+@media (min-width: 940px) {
+  .download-ios .download-visual { order: -1; }
+}
+
+.apple-glyph { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── هيكل آيفون ────────────────────────────────────────────────── */
+/* ثلاث تفصيلات تكفي ليُقرأ آيفونًا: إطار تيتانيوم فاتح، والجزيرة
+   الديناميّة، وشريط الصفحة الرئيسة أسفل الشاشة. */
+.iphone {
+  padding: 11px;
+  border-radius: 52px;
+  background: linear-gradient(160deg, #d9d6d0 0%, #8f8b84 18%, #55524d 52%, #9b978f 82%, #cfccc6 100%);
+}
+.iphone .phone-screen { border-radius: 42px; background: var(--paper-cream); }
+.iphone::after { content: none; }       /* لا كاميرا ثقب */
+
+/* الجزيرة الديناميّة */
+.iphone::before {
+  content: ''; position: absolute; z-index: 3;
+  top: 20px; left: 50%; transform: translateX(-50%);
+  width: 86px; height: 25px; border-radius: 13px;
+  background: #070a09;
+}
+
+/* ── الشاشة ────────────────────────────────────────────────────── */
+.ios-screen {
+  height: 100%; display: flex; flex-direction: column;
+  background: var(--paper-cream); color: var(--ink);
+  font-size: 11px;
+}
+
+.ios-status {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 26px 0;
+  font-size: 11px; font-weight: 700; color: var(--ink);
+}
+.ios-status-icons { display: inline-flex; align-items: center; gap: 5px; }
+.ios-status-icons svg { height: 9px; width: auto; fill: currentColor; }
+
+.ios-bar {
+  display: grid; grid-template-columns: 18px 1fr 18px; align-items: center;
+  gap: var(--s2); padding: var(--s4) var(--s4) var(--s3);
+  border-bottom: 1px solid var(--rule);
+}
+.ios-bar strong { text-align: center; font-size: 12px; font-weight: 700; }
+.ios-back, .ios-share { color: var(--green-700); font-size: 15px; line-height: 1; text-align: center; }
+
+.ios-body { flex: 1; overflow: hidden; padding: var(--s3) var(--s3) 0; }
+
+/* التقرير داخل شاشة هاتف: نفس اللوح بمقاس يُقرأ في ٢٧٠ بكسل */
+.paper-phone {
+  width: 100%; padding: var(--s4) var(--s4) var(--s3);
+  border-radius: 12px; box-shadow: none; border: 1px solid var(--rule);
+}
+.paper-phone .paper-head strong { font-size: 12px; }
+.paper-phone .paper-head span { font-size: 9.5px; }
+.paper-phone .paper-rows { margin-top: var(--s2); }
+.paper-phone .paper-rows div { padding: 5px 0; }
+.paper-phone dt, .paper-phone dd { font-size: 9.5px; }
+.paper-phone .paper-foot { margin-top: var(--s3); font-size: 9px; }
+
+.ios-action { padding: var(--s3) var(--s4) 0; }
+.ios-btn {
+  display: block; text-align: center;
+  padding: 9px var(--s4); border-radius: var(--r-pill);
+  background: var(--green-700); color: #fff;
+  font-size: 11px; font-weight: 700;
+}
+
+/* شريط الصفحة الرئيسة */
+.ios-home {
+  display: block; width: 106px; height: 4px; border-radius: 2px;
+  margin: var(--s3) auto var(--s2);
+  background: rgba(20, 32, 28, .34);
+}
+[data-theme='dark'] .ios-home { background: rgba(236, 231, 221, .34); }
+
+/* شارة بلا رابط: تُعرض ولا تُغري بالنقر */
+.store-badge[aria-disabled='true'] { cursor: default; }
+.store-badge[aria-disabled='true']:hover { transform: none; }
+
+/* ═══ سهم العودة إلى الأعلى ═══════════════════════════════════════ */
+
+/* يستقرّ في الزاوية السفلى من جهة النهاية، فلا يقع تحت الإبهام الذي
+   يمسك الحافة في جهة البداية. ومخفيّ ما دام القارئ في الشاشة الأولى:
+   لا معنى لزرٍّ يعيدك إلى حيث أنت. */
+.to-top {
+  position: fixed;
+  inset-block-end: var(--s6);
+  inset-inline-end: var(--s6);
+  z-index: 60;
+  display: grid; place-items: center;
+  width: 46px; height: 46px; padding: 0;
+  border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--green-700);
+  box-shadow: var(--e2);
+
+  /* `visibility` مع الشفافيّة: بلا الأولى يبقى الزرّ ملموسًا وهو غير
+     مرئيّ، فيعترض نقرةً قُصد بها ما تحته. */
+  opacity: 0; visibility: hidden;
+  transform: translateY(12px) scale(.86);
+  transition: opacity var(--dur-2) var(--ease),
+              transform var(--dur-2) var(--ease),
+              visibility var(--dur-2) var(--ease),
+              border-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease);
+}
+.to-top.is-shown { opacity: 1; visibility: visible; transform: none; }
+
+.to-top svg {
+  width: 20px; height: 20px;
+  transition: transform var(--dur-2) var(--ease);
+}
+.to-top:hover { border-color: var(--green-600); color: var(--green-800); }
+.to-top:hover svg { transform: translateY(-3px); }   /* السهم ينزع إلى أعلى */
+.to-top:active { transform: scale(.92); }
+
+/* على الهاتف يصغر قليلًا ويقترب من الحافة */
+@media (max-width: 719px) {
+  .to-top {
+    width: 42px; height: 42px;
+    inset-block-end: var(--s4); inset-inline-end: var(--s4);
+  }
+}
+
+/* ═══ ١٨) مفتاح الوضع ═════════════════════════════════════════════ */
+
+.theme-toggle {
+  display: inline-grid; place-items: center;
+  width: 38px; height: 38px; padding: 0;
+  border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--rule-strong); background: var(--paper);
+  color: var(--ink-soft); font-size: 16px; line-height: 1;
+  margin-inline-start: auto;
+  transition: border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+              background-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+.theme-toggle:hover { border-color: var(--green-600); color: var(--green-700); }
+.theme-toggle:active { transform: scale(.94); }
+.header-nav ~ .theme-toggle { margin-inline-start: 0; }
+.theme-toggle ~ .btn { margin-inline-start: 0; }
+
+/* زرّ اللغة — أخو زرّ الوضع في كل شيء إلّا أنّه يحمل كلمة لا رمزًا، فهو
+   بيضويّ لا دائريّ. ويقول اللغة التي ينقلك إليها لا التي أنت فيها: من
+   يقرأ العربية لا يبحث عن كلمة «عربي». */
+.lang-toggle {
+  display: inline-grid; place-items: center;
+  height: 38px; padding: 0 12px;
+  border-radius: 19px; cursor: pointer;
+  border: 1px solid var(--rule-strong); background: var(--paper);
+  color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 600; line-height: 1;
+  margin-inline-start: auto;
+  transition: border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+              background-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+.lang-toggle:hover { border-color: var(--green-600); color: var(--green-700); }
+.lang-toggle:active { transform: scale(.94); }
+.header-nav ~ .lang-toggle { margin-inline-start: 0; }
+.lang-toggle ~ .theme-toggle { margin-inline-start: 0; }
+
+/* الإنجليزية أعرض من العربية في هذا الموضع، والترويسة ضيّقة على الجوال. */
+@media (max-width: 560px) {
+  .lang-toggle { padding: 0 9px; font-size: 11px; }
+}
+
+/* ═══ ١٩) الحركة ══════════════════════════════════════════════════ */
+
+/* الظهور بالتمرير — القائمة نفسها مكتوبة في سكربت الصفحة. وهي تحت
+   `.js` وحدها: بلا جافاسكربت لا يُخفى شيء أصلًا، فلا تصير الصفحة
+   بيضاء لمن عطّله. */
+.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li, .event-inner,
+        .download-copy, .download-visual, .about, .final-cta .wrap,
+        details, .why-close) {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--dur-3) var(--ease),
+              transform var(--dur-3) var(--ease-out);
+}
+.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li, .event-inner,
+        .download-copy, .download-visual, .about, .final-cta .wrap,
+        details, .why-close).in {
+  opacity: 1;
+  transform: none;
+}
+
+/* دخول الهيرو: مرّة واحدة عند الفتح، بلا مراقب ولا انتظار تمرير */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+.js .hero-copy > *,
+.js .hero-shot { animation: rise var(--dur-4) var(--ease-out) both; }
+.js .hero-copy > :nth-child(1) { animation-delay: .04s; }
+.js .hero-copy > :nth-child(2) { animation-delay: .10s; }
+.js .hero-copy > :nth-child(3) { animation-delay: .16s; }
+.js .hero-copy > :nth-child(4) { animation-delay: .22s; }
+.js .hero-copy > :nth-child(5) { animation-delay: .28s; }
+.js .hero-copy > :nth-child(6) { animation-delay: .34s; }
+.js .hero-shot { animation-delay: .18s; }
+
+/* لمسة حياة على ما يُلمس فقط */
+.card, .paper, .store-badge, .why-list li {
+  transition: transform var(--dur-2) var(--ease-out),
+              border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease-out);
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--green-200);
+  box-shadow: var(--e3);
+}
+.why-list li:hover { border-color: var(--rule-strong); border-inline-start-color: var(--gold-500); box-shadow: var(--e2); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .to-top { transform: none; }
+  .to-top:hover svg { transform: none; }
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ═══ ٢٠) الوضع الداكن ════════════════════════════════════════════
+   يُختار بزرّ في الترويسة ويبدأ من تفضيل النظام. القرار كلّه في سمة
+   `data-theme` على <html> يكتبها سكربت الترويسة قبل أوّل رسم — ولذلك
+   لا `@media (prefers-color-scheme)` هنا: لو كانت، لَلَزِمت كل قاعدة
+   مرّتين، مرّة للنظام ومرّة للاختيار الصريح.
+
+   الجسم كلّه إعادة تعريف للمتغيّرات، والاستثناءات تحتها وحدها: ما كان
+   لونه خلفيّةً لنصّ أبيض لا يصلح أن يخفّ. */
+
+:root[data-theme='dark'] {
+  --green-900: #073028;
+  --green-800: #0a473b;
+  /* دور النصّ: على أرضية شبه سوداء يحتاج الأخضر أن يفتح ليُقرأ */
+  --green-700: #43bfa2;
+  --green-600: #2f9e86;
+  --green-500: #58d2b6;
+  --green-200: #2e5a4f;
+  --green-100: #23443c;
+  --green-050: #16241f;
+
+  --gold-700: #e8b96a;
+  --gold-600: #d9a441;
+  --gold-500: #a8792c;
+  --gold-300: #e2ae57;
+  --gold-200: #f0c273;
+  --gold-100: #2a2113;
+
+  --ink: #ece7dd;
+  --ink-soft: #c3bcaf;
+  --ink-muted: #918a7d;
+  --ink-faint: #6d6659;
+
+  --paper: #12100e;
+  --paper-off: #17140f;
+  --paper-cream: #1a1712;
+  --paper-sunk: #1e1a15;
+  --rule: #2c2822;
+  --rule-strong: #3b352c;
+
+  --material: rgba(18, 16, 14, .72);
+  --material-strong: rgba(18, 16, 14, .9);
+
+  --e1: 0 1px 2px rgba(0, 0, 0, .5);
+  --e2: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 10px rgba(0, 0, 0, .4);
+  --e3: 0 2px 4px rgba(0, 0, 0, .4), 0 12px 26px rgba(0, 0, 0, .45);
+  --e4: 0 4px 8px rgba(0, 0, 0, .4), 0 24px 48px rgba(0, 0, 0, .5);
+  --e5: 0 8px 18px rgba(0, 0, 0, .45), 0 40px 80px rgba(0, 0, 0, .55);
+  --e-green: 0 2px 6px rgba(0, 0, 0, .4), 0 10px 24px rgba(0, 0, 0, .45);
+}
+
+/* على أرضية شبه سوداء لا يفصل الظلُّ بطاقةً عن خلفيّتها — الذي يفصل هو
+   أن يكون سطحها أفتح منها بدرجة. الفاتح لا يحتاجها: الخيط على الأبيض
+   يُرى وحده. (استُثني `.eyebrow` في لوح التحميل: له زجاجه الخاصّ.) */
+:root[data-theme='dark'] { --raised: #1c1914; }
+[data-theme='dark'] :is(.card, details, .why-list li,
+                        .step-n, .btn-ghost, .theme-toggle, .hero .eyebrow) {
+  background-color: var(--raised);
+}
+[data-theme='dark'] .btn-ghost:hover { background-color: var(--green-050); }
+
+/* الاستثناءات: خلفيّات تحمل نصًّا أبيض، فتبقى غامقة */
+[data-theme='dark'] .btn-primary { background: var(--green-600); color: #fff; }
+[data-theme='dark'] .btn-primary:hover { background: #1a8570; }
+[data-theme='dark'] .skip { background: var(--green-600); }
+[data-theme='dark'] .dot-x { background: var(--green-600); }
+[data-theme='dark'] .device-float { background: var(--green-600); }
+[data-theme='dark'] .card-icon { color: var(--green-700); }
+[data-theme='dark'] .paper-head { border-bottom-color: var(--green-600); }
+
+/* الهيرو في الوضع الداكن: الضوء المحيط يشتدّ قليلًا وإلّا اختفى */
+[data-theme='dark'] .hero-ambient {
+  background:
+    radial-gradient(48% 42% at 78% 8%,  rgba(30, 150, 125, .14) 0%, transparent 68%),
+    radial-gradient(42% 40% at 12% 42%, rgba(201, 134, 47, .09) 0%, transparent 66%);
+}
+[data-theme='dark'] .final-cta {
+  background: radial-gradient(56% 70% at 50% 0%, rgba(30, 150, 125, .10) 0%, transparent 72%), var(--paper);
+}
+
+/* صفحات المصحف: تُقلب كما تُقلب داخل الأداة. والإطار الليليّ يقلبها
+   بقاعدته هو — وهي أعلى تخصيصًا — فلا تُقلب مرّتين.
+
+   و`.riwaya-leaf` لا `.riwaya-page`: الصنف أُعيد تسميته حين صارت الصفحة
+   ورقةً قائمة بذاتها، وبقيت هذه القاعدة على الاسم القديم فلم تُصب شيئًا —
+   فكانت صفحات قسم الروايات حبرًا أسود على ورقٍ صار في الليل أسود مثله. */
+[data-theme='dark'] .riwaya-leaf img,
+[data-theme='dark'] .device-page img { filter: invert(.895) hue-rotate(180deg); }

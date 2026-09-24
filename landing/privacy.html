@@ -1,0 +1,242 @@
+<!doctype html>
+<!--
+  سياسة خصوصيّة أداة السرد القرآني — تُخدم على sard.tajweedoo.com/privacy
+  ────────────────────────────────────────────────────────────────────────
+  متجر Play يطلب **رابطًا عامًّا** لسياسة الخصوصيّة، ويقرؤها مراجعٌ بشريّ
+  قد لا يعرف العربية — فالنصّ هنا بالعربية أوّلًا وبالإنجليزية تحته في
+  الصفحة نفسها، لا خلف زرّ ولا في صفحة ثانية.
+
+  والنصّ نفسه معروض داخل التطبيق في `sard/src/AboutPage.tsx`. أيّ تعديل
+  هنا يُنقل هناك: سياستان مختلفتان لتطبيق واحد مشكلةٌ في المتجر قبل أن
+  تكون مشكلةً مع القارئ.
+
+  الصفحة تستعمل `styles.css` نفسها ولا تحمل من سكربت صفحة التعريف إلا
+  سطر الوضع الليلي — لأنّها نصّ، ولا شيء فيها يحتاج جافاسكربت ليُقرأ.
+-->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سياسة الخصوصيّة — أداة السرد القرآني</title>
+<meta name="description" content="ما تحفظه أداة السرد القرآني، وما تُرفعه، ومن يقرؤه، وكيف يُحذف.">
+<link rel="icon" href="/favicon.ico?v=3" sizes="any">
+<link rel="icon" type="image/png" href="assets/favicon-256.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0e5b4c">
+<meta name="robots" content="index,follow">
+<link rel="stylesheet" href="styles.css">
+<script>
+  /* الوضع قبل أوّل رسم — كما في صفحة التعريف، وبالمفتاح نفسه. */
+  (function () {
+    var stored = null;
+    try { stored = localStorage.getItem('sard:landing-theme'); } catch (e) { /* وضع خاص */ }
+    var system = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = stored || (system ? 'dark' : 'light');
+  })();
+</script>
+<style>
+  /* صفحة نصّ: عمود واحد ضيّق، ومقاسات من سلّم التصميم نفسه. */
+  .doc { padding: var(--s12) 0 var(--s16); }
+  .doc .wrap { max-width: 46rem; }
+  .doc h1 { margin: 0 0 var(--s3); }
+  .doc .lede { color: var(--ink-soft); margin: 0 0 var(--s8); }
+  .doc h2 {
+    margin: var(--s10) 0 var(--s3);
+    padding-top: var(--s6);
+    border-top: 1px solid var(--rule);
+  }
+  .doc h3 { margin: var(--s6) 0 var(--s2); font-size: 1rem; }
+  .doc p, .doc li { color: var(--ink-soft); line-height: 1.85; }
+  .doc ul { padding-inline-start: 1.25em; }
+  .doc li { margin-bottom: var(--s2); }
+  .doc strong { color: var(--ink); }
+  .doc .meta { color: var(--ink-muted); font-size: .875rem; }
+  .doc .backlink { display: inline-block; margin-bottom: var(--s6); }
+  /* النسخة الإنجليزية تقلب اتجاهها وحدها داخل صفحة عربيّة. */
+  .doc-en { direction: ltr; text-align: start; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="/">
+      <img src="assets/sard-logo-v2.webp?v=3" alt="" width="36" height="36">
+      <span class="brand-text">
+        <strong>أداة السرد القرآني</strong>
+        <small>إحدى أدوات تجويدوو</small>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main id="main" class="doc">
+  <div class="wrap">
+
+    <a class="link backlink" href="/">→ العودة إلى صفحة الأداة</a>
+
+    <h1>سياسة الخصوصيّة</h1>
+    <p class="lede">
+      باختصار: ما تكتبه يُحفظ على جهازك أوّلًا، ويُرفع مجلسٌ منتهٍ إلى قاعدة بيانات
+      الأداة ليظهر في تقارير صاحبها. لا إعلانات، ولا تتبّع، ولا بيع بيانات — لا اليوم
+      ولا لاحقًا.
+    </p>
+    <p class="meta">آخر تحديث: ٢١ أغسطس ٢٠٢٦ · تخصّ تطبيق «أداة السرد القرآني» (<span dir="ltr">com.tajweedoo.sard</span>) والنسخة المتاحة على الويب.</p>
+
+    <h2>ما يبقى على جهازك</h2>
+    <p>
+      المجالس كلّها — الملاحظات والمواضع والمدد — تُكتب في تخزين التطبيق على جهازك
+      أثناء المجلس، لا على الشبكة. ولذلك يعمل السرد بلا إنترنت، ويرجع المجلس كما
+      تركته بعد إغلاق التطبيق. ويُحفظ معها تفضيلك للّغة والوضع الليلي والطبعة
+      المختارة.
+    </p>
+
+    <h2>ما يُرفع، ومتى</h2>
+    <p>
+      عند <strong>إنهاء</strong> المجلس تُرسل نسخته إلى قاعدة بيانات الأداة. والمجلس
+      الجاري لا يُرفع. وإن لم تكن متّصلًا وقت الإنهاء فالمجلس ينتظر على جهازك ويُرفع
+      في أوّل مرّة تفتح فيها الأداة وأنت متّصل.
+    </p>
+    <p>والمرفوع هو:</p>
+    <ul>
+      <li>اسم القارئ واسم المقرئ.</li>
+      <li>رقما واتساب ودولتاهما، <strong>إن أُدخلا</strong> — والمجلس يعمل بدونهما.</li>
+      <li>الطبعة والرواية والموضع الذي بلغه المجلس.</li>
+      <li>ملاحظات المجلس وأعدادها ومدده وتقدّمه.</li>
+      <li>بريد المعلّم الإلكتروني إن كان مسجَّلًا في تجويدوو.</li>
+    </ul>
+
+    <h2>لماذا، ومن يقرأ</h2>
+    <p>
+      يُرفع ليظهر في تقارير صاحب الأداة، وليصحّ التحقّق من شهادة السرد حين يُمسح رمزها
+      بالهاتف. وقراءة هذه البيانات محصورة في إدارة الأداة عبر واجهة محميّة؛ لا يستطيع
+      مستخدم آخر — ولا التطبيق نفسه — قراءة صفٍّ ليس له.
+    </p>
+
+    <h2>خدمات تُطلب من خارج التطبيق</h2>
+    <ul>
+      <li><strong>Supabase</strong> — قاعدة بيانات المجالس المرفوعة.</li>
+      <li>
+        <strong>Cloudflare R2</strong> — صفحات المصاحف تُجلب من مستودع ملفّات عند فتح
+        كل صفحة، ويُرسل معها ما ترسله أيّ زيارة لملفّ على الإنترنت (عنوان IP ونوع
+        الجهاز) بلا أيّ بيانات عن المجلس.
+      </li>
+      <li>
+        <strong>Google Fonts</strong> — خطوط الواجهة تُحمَّل من خوادم جوجل، فيصلها
+        عنوان IP الجهاز.
+      </li>
+    </ul>
+
+    <h2>إن كان القارئ طفلًا</h2>
+    <p>
+      هذه أداة معلّم، والقارئ قد يكون طفلًا. فإدخال اسم طفل أو رقم اتصاله مسؤوليّة
+      المعلّم، وعليه أخذ إذن وليّ الأمر قبله. ويمكن تشغيل المجلس بلا رقم واتساب أصلًا،
+      وبالاسم الأوّل وحده.
+    </p>
+
+    <h2>حذف بياناتك</h2>
+    <p>
+      المجلس على جهازك يُحذف من قائمة المجالس داخل الأداة. وللمرفوع: راسلنا على
+      <a class="link" href="mailto:support@tajweedoo.com" dir="ltr">support@tajweedoo.com</a>
+      ونحذف ما يخصّك من قاعدة البيانات.
+    </p>
+
+    <h2>تواصل</h2>
+    <p>
+      للدعم أو الاقتراح أو الإبلاغ عن خطأ:
+      <a class="link" href="mailto:support@tajweedoo.com" dir="ltr">support@tajweedoo.com</a>
+      · <a class="link" href="https://tajweedoo.com" target="_blank" rel="noopener">tajweedoo.com</a>
+    </p>
+
+    <!-- ─────────────── English ─────────────── -->
+    <div class="doc-en" lang="en">
+      <h2 id="en">Privacy policy (English)</h2>
+      <p class="lede">
+        In short: what you type is saved on your device first, and a finished session is
+        uploaded to the tool's database so it appears in its owner's reports. No ads, no
+        tracking, no selling of data — not now and not later.
+      </p>
+      <p class="meta">Last updated: 21 August 2026 · Covers the app “The Quran Recitation Tool” (com.tajweedoo.sard) and its web version.</p>
+
+      <h3>What stays on your device</h3>
+      <p>
+        Every session — its notes, positions and durations — is written to the app's storage
+        on your device during the session, not over the network. That is why recitation works
+        offline, and why a session comes back as you left it after the app is closed. Your
+        language, dark-mode and edition preferences are kept with it.
+      </p>
+
+      <h3>What is uploaded, and when</h3>
+      <p>
+        When a session is <strong>ended</strong>, a copy is sent to the tool's database; a session
+        still running is not uploaded. If you are offline when it ends, it waits on your device
+        and is uploaded the first time you open the tool with a connection. What is sent:
+      </p>
+      <ul>
+        <li>The reciter's and the listener's names.</li>
+        <li>Their WhatsApp numbers and countries, <strong>if entered</strong> — a session works without them.</li>
+        <li>The edition, riwaya and position the session reached.</li>
+        <li>The session's notes, their counts, its durations and its progress.</li>
+        <li>The teacher's email address if one is registered with Tajweedoo.</li>
+      </ul>
+
+      <h3>Why, and who can read it</h3>
+      <p>
+        It is uploaded so it appears in the reports of whoever runs the tool, and so a recitation
+        certificate can be verified when its code is scanned. Reading this data is limited to the
+        tool's administration through a protected interface; no other user — and not the app
+        itself — can read a row that is not theirs.
+      </p>
+
+      <h3>Services requested from outside the app</h3>
+      <ul>
+        <li><strong>Supabase</strong> — the database holding uploaded sessions.</li>
+        <li>
+          <strong>Cloudflare R2</strong> — mushaf pages are fetched from a file store as each page
+          opens; that request carries what any request for a file on the internet carries (an IP
+          address and a device type) and nothing about the session.
+        </li>
+        <li>
+          <strong>Google Fonts</strong> — the interface fonts are loaded from Google's servers,
+          which therefore see the device's IP address.
+        </li>
+      </ul>
+
+      <h3>If the reciter is a child</h3>
+      <p>
+        This is a teacher's tool, and the reciter may be a child. Entering a child's name or
+        contact number is the teacher's responsibility, and the guardian's permission must be
+        taken first. A session can be run with no WhatsApp number at all, and with a first name
+        alone.
+      </p>
+
+      <h3>Deleting your data</h3>
+      <p>
+        A session on your device is deleted from the session list in the tool. For what has been
+        uploaded, write to
+        <a class="link" href="mailto:support@tajweedoo.com">support@tajweedoo.com</a>
+        and we will delete what is yours from the database.
+      </p>
+
+      <h3>Contact</h3>
+      <p>
+        For support, a suggestion or a bug report:
+        <a class="link" href="mailto:support@tajweedoo.com">support@tajweedoo.com</a>
+        · <a class="link" href="https://tajweedoo.com" target="_blank" rel="noopener">tajweedoo.com</a>
+      </p>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="fineprint">
+      أصول صفحات المصحف من مجمّع الملك فهد لطباعة المصحف الشريف.
+      Google Play وشعارها علامتان تجاريّتان لشركة Google LLC.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

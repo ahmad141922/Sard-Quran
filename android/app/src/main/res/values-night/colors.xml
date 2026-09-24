@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  الوضع الليليّ: الأرضيّة وحدها تُظلم. ودائرة الأيقونة تبقى كريميّة كما هي في
+  drawable-night/splash.png — لوحٌ فاتح على أرضٍ داكنة، لا شعارٌ يختفي فيها.
+-->
+<resources>
+    <color name="splash_background">#110f0d</color>
+</resources>

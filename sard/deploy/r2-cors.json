@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://sard.tajweedoo.com",
+          "https://sard-tajweedoo.pages.dev",
+          "https://localhost",
+          "capacitor://localhost"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["*"]
+      },
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

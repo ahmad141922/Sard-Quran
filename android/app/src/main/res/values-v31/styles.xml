@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  شاشة الإقلاع على أندرويد ١٢ فصاعدًا.
+
+  من أندرويد ١٢ لم يعد `android:background` في سمة الإقلاع هو ما يُرى: النظام
+  يرسم شاشته هو — أرضيّة ودائرة في وسطها أيقونة — ويأخذ الأيقونة من
+  `android:icon` ما لم تُسمَّ له غيرها. وأيقونة المشغّل لوحها ١٠٨dp، والنظام
+  يكبّرها إلى ٢٤٠dp، فتخرج مسنّنة الحواف.
+
+  فتُسمّى له هنا أيقونةٌ مرسومة لمقاسه: `splash_icon` بـ٢٤٠dp في كلّ كثافة،
+  يولّدها `npm run android:icons`. ولا تكبير بعدها.
+
+  وما دون أندرويد ١٢ لا يقرأ هذا الملفّ أصلًا، فيبقى على `@drawable/splash`
+  في values/styles.xml — وهي شاشة كاملة لا دائرة.
+-->
+<resources>
+
+    <!--
+      ولا `postSplashScreenTheme` هنا: لا يقرؤه إلا `installSplashScreen()`،
+      و`BridgeActivity` في Capacitor لا يناديها — بل يبدّل السمة بيده في
+      `onCreate` بـ`setTheme(R.style.AppTheme_NoActionBar)`. فالسطر يكون
+      حبرًا لا يقرؤه أحد.
+    -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item>
+    </style>
+
+</resources>

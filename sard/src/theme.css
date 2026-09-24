@@ -1,0 +1,75 @@
+/* خطّ الشهادة وصفحة التعريف واحد: الوثيقة التي تُطبع تُقرأ كأنها من العائلة
+   نفسها. ويجب أن يسبق الاستيرادُ كلَّ قاعدة في الملفّ. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+/*
+  ألوان أداة السرد — طبقة فوق `@/index.css` لا نسخة منه.
+
+  The tool shares its components with the board, and the board's palette is
+  orange on white. The tool's own screens were written in paper-and-emerald
+  literals, so the shared modals — the setup dialog, the report — kept arriving
+  in the board's colours: orange focus rings inside a green app.
+
+  Retuning every component would have meant touching files the board also
+  builds from. Redefining the tokens they already read costs one file, and the
+  board never imports it.
+
+  Unlayered on purpose: `index.css` states its palette inside `@layer base`,
+  and an unlayered rule outranks a layered one whatever their order or
+  specificity. So this wins without `!important` and without a deeper selector.
+*/
+
+:root {
+  /* ورق المصحف — the app shell's own #fdf8ef, now the token behind it. */
+  --background: 39 78% 96%;
+  --foreground: 144 7% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 144 7% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 144 7% 13%;
+
+  /* emerald-700/800: the colour of every primary action on the home screen. */
+  --primary: 163 94% 24%;
+  --primary-foreground: 0 0% 100%;
+  --primary-hover: 163 88% 20%;
+
+  --secondary: 155 12% 38%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 39 45% 92%;
+  --muted-foreground: 155 10% 38%;
+  --accent: 39 50% 93%;
+  --accent-foreground: 144 7% 13%;
+
+  /* Warm hairlines: a blue-grey border on paper reads as a stray element. */
+  --border: 150 14% 85%;
+  --input: 150 14% 85%;
+  --ring: 163 94% 24%;
+}
+
+.dark {
+  --background: 30 13% 6%;
+  --foreground: 40 28% 90%;
+  /* Cards lift off the ground rather than sharing it, so a dialog at night has
+     an edge without needing a brighter border. */
+  --card: 30 10% 9%;
+  --card-foreground: 40 28% 90%;
+  --popover: 30 10% 9%;
+  --popover-foreground: 40 28% 90%;
+
+  /* Lighter than the light-mode green: emerald-700 on a near-black ground is
+     legible as a shape but not as a colour. */
+  --primary: 160 84% 33%;
+  --primary-foreground: 0 0% 100%;
+  --primary-hover: 161 90% 28%;
+
+  --secondary: 40 10% 70%;
+  --secondary-foreground: 30 13% 6%;
+  --muted: 30 8% 14%;
+  --muted-foreground: 40 10% 62%;
+  --accent: 30 8% 13%;
+  --accent-foreground: 40 28% 90%;
+
+  --border: 150 8% 20%;
+  --input: 150 8% 20%;
+  --ring: 160 84% 33%;
+}

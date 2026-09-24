@@ -1,0 +1,46 @@
+node_modules
+*.log
+*.local
+.env
+.env.*
+!.env.example
+
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Build outputs
+dist/
+dist-sard/
+dist-native/
+dist-android/
+dist-deploy/
+
+# Copied in from public/ by scripts/copy-sard-assets.mjs — public/ is the source.
+# Everything else in sard/public/ (the muṣḥaf plates, the matn texts, the
+# phonemes, mutashābihāt, madinah lines and the ASR tokens) is tracked source.
+sard/public/_headers
+sard/public/_redirects
+sard/public/hafs_smart_v8.json
+sard/public/mushaf-shamarly.json
+sard/public/fonts/
+sard/public/logos/
+sard/public/cert/
+sard/public/favicon.png
+sard/public/pwa-*.png
+
+# Pages downloaded by scripts/build-matn.mjs, so a rebuild need not refetch.
+.cache/
+.wrangler/
+
+# Signing material never lives in the tree: android/keystore.properties points
+# at a keystore outside it; the iOS certificates belong to the Mac keychain.
+*.jks
+*.keystore
+*.mobileprovision
+*.p12
+android/keystore.properties
+
+# The ASR model is side-loaded onto the device, never bundled.
+*.onnx
