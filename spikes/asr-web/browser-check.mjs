@@ -15,12 +15,13 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { cpus } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const pw = require(process.env.PLAYWRIGHT_MODULE ?? join(execSync('npm root -g').toString().trim(), 'playwright'));
 
 const PORT = 8097;
-const server = spawn(process.execPath, ['serve.mjs', String(PORT)], { cwd: new URL('.', import.meta.url).pathname, stdio: 'ignore' });
+const server = spawn(process.execPath, ['serve.mjs', String(PORT)], { cwd: fileURLToPath(new URL('.', import.meta.url)), stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 500));
 
 const browser = await pw.chromium.launch();

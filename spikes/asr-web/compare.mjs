@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { performance } from 'node:perf_hooks';
+import { fileURLToPath } from 'node:url';
 
 import * as ort from 'onnxruntime-web';
 
@@ -48,7 +49,7 @@ function synthetic(path) {
   return path;
 }
 
-const wavPath = wavArg ?? synthetic(new URL('./models/synthetic.wav', import.meta.url).pathname);
+const wavPath = wavArg ?? synthetic(fileURLToPath(new URL('./models/synthetic.wav', import.meta.url)));
 const wave = sherpa.readWave(wavPath);
 if (wave.sampleRate !== 16000) throw new Error(`recording is ${wave.sampleRate} Hz; this check wants 16000`);
 const audioSec = wave.samples.length / 16000;
