@@ -1,0 +1,17 @@
+{
+  "name": "sard-asr-web-spike",
+  "private": true,
+  "type": "module",
+  "description": "Feasibility spike: the recitation recogniser in the browser, on onnxruntime-web.",
+  "scripts": {
+    "compare": "node compare.mjs",
+    "serve": "node serve.mjs",
+    "browser": "node browser-check.mjs"
+  },
+  "dependencies": {
+    "onnxruntime-web": "1.23.2"
+  },
+  "devDependencies": {
+    "sherpa-onnx": "1.13.8"
+  }
+}

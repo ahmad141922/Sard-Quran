@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تجربة التعرّف في المتصفح</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 44rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+    label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
+    #heard { font-size: 1.4rem; min-height: 3rem; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; word-spacing: 0.3rem; }
+    #log { background: #f5f5f5; padding: 0.75rem; border-radius: 6px; direction: ltr; text-align: left; white-space: pre-wrap; font-size: 0.85rem; }
+    button { font: inherit; padding: 0.4rem 1rem; }
+  </style>
+</head>
+<body>
+  <h1>تجربة التعرّف على التلاوة في المتصفح</h1>
+  <p>
+    تجربة جدوى، لا ميزة. النموذج يعمل على هذا الجهاز ولا يُرفع الصوت إلى أي مكان.
+    حمّل <code>zipformer_p_arabic_v3.int8.onnx</code> (٦٩ م.ب) من جهازك، ثم ملف تلاوة أو الميكروفون.
+  </p>
+  <p>الخيوط: <span id="threads"></span></p>
+
+  <label for="model-file">١. النموذج (.onnx)</label>
+  <input id="model-file" type="file" accept=".onnx">
+
+  <label for="audio-file">٢. تسجيل تلاوة (wav/mp3/…)</label>
+  <input id="audio-file" type="file" accept="audio/*">
+  <p>أو <button id="mic" type="button">تسجيل من الميكروفون</button></p>
+
+  <label>ما سُمع (أصوات، لا حروف مكتوبة)</label>
+  <div id="heard"></div>
+
+  <label>السجلّ</label>
+  <pre id="log"></pre>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
