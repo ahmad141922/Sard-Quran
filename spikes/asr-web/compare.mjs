@@ -126,5 +126,22 @@ console.log(`recording        ${audioSec.toFixed(2)} s`);
 console.log(`symbols          sherpa ${ref.heard.length}, web ${web.heard.length} (${web.chunks} chunks)`);
 console.log(`first symbols    ${web.heard.slice(0, 12).map((h) => h.symbol).join(' ')}`);
 console.log(`time (1 thread)  sherpa ${ref.ms.toFixed(0)} ms, web ${web.ms.toFixed(0)} ms`);
-console.log(mismatches === 0 ? 'IDENTICAL' : `DIFFERENT in ${mismatches} places`);
+// How far apart the two symbol strings are, for when they are not identical:
+// near-tie frames can go either way between onnxruntime builds, as they can
+// between two phones.
+function editDistance(a, b) {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+const distance = editDistance(ref.heard.map((h) => h.symbol), web.heard.map((h) => h.symbol));
+console.log(mismatches === 0
+  ? 'IDENTICAL'
+  : `DIFFERENT in ${mismatches} places; ${distance} symbol edit(s) of ${ref.heard.length}`);
 process.exit(mismatches === 0 ? 0 : 1);

@@ -47,7 +47,10 @@ export function readOnnxMetadata(bytes) {
   const skip = (wire) => {
     if (wire === 0) varint();
     else if (wire === 1) pos += 8;
-    else if (wire === 2) pos += varint();
+    else if (wire === 2) {
+      const size = varint(); // before `pos +=`, which would read pos first
+      pos += size;
+    }
     else if (wire === 5) pos += 4;
     else throw new Error(`ONNX: unsupported wire type ${wire}`);
   };
@@ -58,7 +61,9 @@ export function readOnnxMetadata(bytes) {
     const field = Math.floor(tag / 8);
     const wire = tag % 8;
     if (field === 14 && wire === 2) {
-      const end = pos + varint();
+      // Not `pos + varint()`: that reads pos before the length is consumed.
+      const size = varint();
+      const end = pos + size;
       let key = '';
       let value = '';
       while (pos < end) {
@@ -100,7 +105,7 @@ const FLT_EPSILON = 1.1920928955078125e-7;
 const melScale = (hz) => 1127 * Math.log(1 + hz / 700);
 
 function povey() {
-  const w = new Float64Array(FRAME_LEN);
+  const w = new Float32Array(FRAME_LEN);
   const a = (2 * Math.PI) / (FRAME_LEN - 1);
   for (let i = 0; i < FRAME_LEN; i++) w[i] = Math.pow(0.5 - 0.5 * Math.cos(a * i), 0.85);
   return w;
@@ -127,7 +132,7 @@ function melBanks() {
         weights.push(mel <= center ? (mel - left) / (center - left) : (right - mel) / (right - center));
       }
     }
-    banks.push({ first, weights: Float64Array.from(weights) });
+    banks.push({ first, weights: Float32Array.from(weights) });
   }
   return banks;
 }
@@ -177,9 +182,9 @@ export class Fbank {
     this.finished = false;
     /** Computed frames, 80 floats each. */
     this.frames = [];
-    this.re = new Float64Array(FFT_SIZE);
-    this.im = new Float64Array(FFT_SIZE);
-    this.frame = new Float64Array(FRAME_LEN);
+    this.re = new Float32Array(FFT_SIZE);
+    this.im = new Float32Array(FFT_SIZE);
+    this.frame = new Float32Array(FRAME_LEN);
   }
 
   acceptWaveform(chunk) {
@@ -228,7 +233,7 @@ export class Fbank {
       w[i] = this.samples[s];
       mean += w[i];
     }
-    mean /= FRAME_LEN;
+    mean = Math.fround(mean / FRAME_LEN);
     for (let i = 0; i < FRAME_LEN; i++) w[i] -= mean;
     for (let i = FRAME_LEN - 1; i > 0; i--) w[i] -= PREEMPH * w[i - 1];
     w[0] -= PREEMPH * w[0];
@@ -245,7 +250,7 @@ export class Fbank {
       let e = 0;
       for (let k = 0; k < weights.length; k++) {
         const i = first + k;
-        e += weights[k] * (re[i] * re[i] + im[i] * im[i]);
+        e = Math.fround(e + weights[k] * Math.fround(Math.fround(re[i] * re[i]) + Math.fround(im[i] * im[i])));
       }
       out[b] = Math.log(Math.max(e, FLT_EPSILON));
     }

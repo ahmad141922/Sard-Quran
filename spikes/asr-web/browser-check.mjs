@@ -34,17 +34,37 @@ try {
   const env = await page.evaluate(() => ({ threads: window.spike.threads, isolated: window.spike.isolated, ua: navigator.userAgent }));
   console.log(`browser          ${env.ua.match(/(Headless)?Chrome\/[\d.]+/)[0]}, ${env.threads} threads, isolated=${env.isolated}, host cores=${cpus().length}`);
 
-  // 1. Same symbols as sherpa-onnx
-  const expected = JSON.parse(readFileSync(new URL('./models/synthetic.wav.sherpa.json', import.meta.url)));
-  const r = await page.evaluate(() => window.spike.transcribeUrl('/models/fake-zipformer2-ctc.onnx', '/models/synthetic.wav'));
+  // 1. Same symbols as sherpa-onnx. Model and recording are paths under this
+  //    directory; compare.mjs must have been run on the same pair first.
+  const [modelArg = 'models/fake-zipformer2-ctc.onnx', wavArg = 'models/synthetic.wav'] = process.argv.slice(2);
+  const expected = JSON.parse(readFileSync(new URL(`./${wavArg}.sherpa.json`, import.meta.url)));
+  const r = await page.evaluate(([m, w]) => window.spike.transcribeUrl(`/${m}`, `/${w}`), [modelArg, wavArg]);
   let diff = 0;
   for (let i = 0; i < Math.max(expected.length, r.heard.length); i++) {
     const a = expected[i];
     const b = r.heard[i];
     if (!(a && b && a.symbol === b.symbol && Math.abs(a.atMs - b.atMs) <= 1)) diff++;
   }
-  console.log(`interface model  ${r.heard.length}/${expected.length} symbols, ${diff === 0 ? 'IDENTICAL to sherpa-onnx' : `DIFFERENT in ${diff}`}`);
+  console.log(`${modelArg}: ${r.heard.length}/${expected.length} symbols, ${diff === 0 ? 'IDENTICAL to sherpa-onnx' : `DIFFERENT in ${diff}`}`);
+  console.log(`  ${(r.audioMs / 1000).toFixed(1)} s of audio: fetch ${r.loadMs.toFixed(0)} ms, session ${r.sessionMs.toFixed(0)} ms, recognition ${r.totalMs.toFixed(0)} ms (RTF ${r.rtf.toFixed(3)})`);
   failed ||= diff !== 0;
+
+  // 1b. The same recognition, slowed: every thread, then one.
+  if (process.argv[2]) {
+    const cdp = await page.context().newCDPSession(page);
+    for (const query of ['', '?threads=1']) {
+      await page.goto(`http://localhost:${PORT}/${query}`);
+      await page.waitForFunction(() => window.spike);
+      for (const slow of [1, 4]) {
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate: slow });
+        const t = await page.evaluate(([m, w]) => window.spike.transcribeUrl(`/${m}`, `/${w}`), [modelArg, wavArg]);
+        console.log(`  ${query ? '1 thread ' : 'threads  '} cpu/${slow}: recognition ${t.totalMs.toFixed(0)} ms (RTF ${t.rtf.toFixed(3)}), session ${t.sessionMs.toFixed(0)} ms`);
+      }
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    }
+    await page.goto(`http://localhost:${PORT}/`);
+    await page.waitForFunction(() => window.spike);
+  }
 
   // 2. Cost of the weight: every thread, then one (a site without COOP/COEP)
   for (const query of ['', '?threads=1']) {
