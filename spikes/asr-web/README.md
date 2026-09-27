@@ -76,6 +76,19 @@ RTF = زمن المعالجة ÷ زمن الصوت؛ أقلّ من ١ يعني �
    (كما يشترط `SardAsrPlugin.prepare`). يلزم مكان لاستضافتها بـCORS (R2 مثلًا).
 4. لم يُجرَّب Safari/iOS ولا Firefox — Chromium وحده.
 
+## معاينة للهاتف
+
+الميكروفون والخيوط يحتاجان https، فالتجربة على الهاتف من نشر معاينة لا من `localhost`:
+
+```bash
+cd spikes/asr-web && npm install && node build-preview.mjs
+cd ../.. && npx wrangler pages deploy spikes/asr-web/preview --project-name=sard-tajweedoo --branch=test-asr
+```
+
+فرع غير `main` يعطي عنوان معاينة ولا يمسّ الموقع المنشور. النموذج لا يُرفع مع الصفحة
+(Pages يرفض ما فوق 25 MiB)؛ تختاره الصفحة من ذاكرة الهاتف. جُرِّب المجلّد نفسه في Chromium
+بمقاس هاتف: ملف تلاوة، وميكروفون مُحاكى بتسجيل (48 kHz ← 16 kHz)، بلا تأخّر عن الصوت.
+
 ## التشغيل
 
 ```bash

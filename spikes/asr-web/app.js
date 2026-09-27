@@ -1,12 +1,15 @@
 // The spike page: load a model, feed it a recording or the microphone, and
 // report what was heard and what it cost. `window.spike` is what
 // browser-check.mjs drives; the buttons are the same calls by hand.
+//
+// Paths are relative so the same files work from `serve.mjs` and from the
+// folder `build-preview.mjs` makes for a Cloudflare Pages preview.
 
-import * as ort from '/ort/ort.wasm.min.mjs';
+import * as ort from './ort/ort.wasm.min.mjs';
 
 import { Recognizer } from './web-asr.js';
 
-ort.env.wasm.wasmPaths = '/ort/';
+ort.env.wasm.wasmPaths = new URL('./ort/', import.meta.url).href;
 const asked = Number(new URLSearchParams(location.search).get('threads'));
 const THREADS = self.crossOriginIsolated ? asked || Math.min(4, navigator.hardwareConcurrency || 1) : 1;
 ort.env.wasm.numThreads = THREADS;
@@ -18,7 +21,7 @@ const log = (line) => {
 
 let tokensText = null;
 async function tokens() {
-  tokensText ??= await (await fetch('/tokens.txt')).text();
+  tokensText ??= await (await fetch('./tokens.txt')).text();
   return tokensText;
 }
 
@@ -42,6 +45,7 @@ async function modelBytes(url) {
 /** 16 kHz mono PCM16 WAV read exactly, so the samples match sherpa's readWave. */
 function parseWav(buf) {
   const v = new DataView(buf);
+  if (v.byteLength < 12 || v.getUint32(0, false) !== 0x52494646) return null; // "RIFF"
   let p = 12;
   let fmt = null;
   while (p + 8 <= v.byteLength) {
@@ -71,6 +75,43 @@ async function decodeAny(buf) {
   src.connect(off.destination);
   src.start();
   return (await off.startRendering()).getChannelData(0);
+}
+
+/**
+ * Microphone audio to 16 kHz, whatever rate the device records at.
+ *
+ * Asking the AudioContext for 16 kHz works in Chrome but not everywhere
+ * (Firefox refuses to connect a microphone at a different rate), so the
+ * context runs at the device's rate and this averages each output sample over
+ * its span of input: a box filter, enough to keep 48 kHz from folding above
+ * 8 kHz into the speech band.
+ */
+class Downsampler {
+  constructor(fromRate) {
+    this.ratio = fromRate / 16000;
+    this.pending = new Float32Array(0);
+    this.next = 0; // position of the next output sample, in pending's samples
+  }
+
+  push(input) {
+    const buf = new Float32Array(this.pending.length + input.length);
+    buf.set(this.pending);
+    buf.set(input, this.pending.length);
+    const out = [];
+    const half = this.ratio / 2;
+    while (this.next + half < buf.length) {
+      const from = Math.max(0, Math.floor(this.next - half));
+      const to = Math.min(buf.length, Math.ceil(this.next + half));
+      let sum = 0;
+      for (let i = from; i < to; i++) sum += buf[i];
+      out.push(sum / (to - from));
+      this.next += this.ratio;
+    }
+    const keep = Math.max(0, Math.floor(this.next - half) - 1);
+    this.pending = buf.slice(keep);
+    this.next -= keep;
+    return Float32Array.from(out);
+  }
 }
 
 async function recognise(recognizer, samples, onPartial) {
@@ -138,69 +179,138 @@ window.spike = {
 // ---------------------------------------------------------------------------
 
 let current = null;
+let sessionMs = 0;
+let modelName = '';
 
-$('threads').textContent = `${THREADS} (${self.crossOriginIsolated ? 'isolated' : 'not isolated: one thread'})`;
+const device = [
+  `${THREADS} ${THREADS === 1 ? 'خيط' : 'خيوط'}`,
+  self.crossOriginIsolated ? 'معزول' : 'غير معزول',
+  `${navigator.hardwareConcurrency || '?'} أنوية`,
+].join(' · ');
+$('threads').textContent = device;
+
+function setStep(step) {
+  for (const el of document.querySelectorAll('[data-step]')) {
+    el.toggleAttribute('disabled', Number(el.dataset.step) > step);
+  }
+}
+setStep(1);
+
+function show(heard) {
+  $('heard').textContent = heard.map((h) => h.symbol).join(' ') || '…';
+}
+
+/** The box meant for a screenshot: what was heard, and what it cost. */
+function report(source, r) {
+  const rtf = r.rtf;
+  const verdict = rtf < 0.5 ? 'ممتاز — أسرع بكثير من التلاوة'
+    : rtf < 1 ? 'مقبول — أسرع من التلاوة'
+      : 'بطيء — أبطأ من التلاوة';
+  $('report').hidden = false;
+  $('report-body').textContent = [
+    `المصدر: ${source}`,
+    `مدة الصوت: ${(r.audioMs / 1000).toFixed(1)} ث`,
+    `زمن المعالجة: ${(r.totalMs / 1000).toFixed(1)} ث`,
+    `النسبة (RTF): ${rtf.toFixed(2)} — ${verdict}`,
+    `عدد الأصوات: ${r.heard.length}`,
+    `تحميل النموذج: ${(sessionMs / 1000).toFixed(1)} ث (${modelName})`,
+    `الجهاز: ${device}`,
+    `المتصفح: ${navigator.userAgent}`,
+  ].join('\n');
+}
 
 $('model-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  log(`loading ${file.name} (${(file.size / 1e6).toFixed(1)} MB)...`);
+  $('model-status').textContent = `جارٍ التحميل (${(file.size / 1e6).toFixed(0)} م.ب)…`;
   try {
-    const { recognizer, sessionMs } = await build(new Uint8Array(await file.arrayBuffer()));
-    current = recognizer;
-    log(`ready in ${sessionMs.toFixed(0)} ms. T=${recognizer.T}, shift=${recognizer.chunkShift}, states=${recognizer.stateShapes.length}`);
+    const built = await build(new Uint8Array(await file.arrayBuffer()));
+    current = built.recognizer;
+    sessionMs = built.sessionMs;
+    modelName = file.name;
+    $('model-status').textContent = `✓ جاهز في ${(sessionMs / 1000).toFixed(1)} ث`;
+    log(`model ${file.name}: T=${current.T}, shift=${current.chunkShift}, states=${current.stateShapes.length}`);
+    setStep(2);
   } catch (err) {
-    log(`failed: ${err.message}`);
+    $('model-status').textContent = `✗ فشل: ${err.message}`;
+    log(`failed: ${err.stack ?? err.message}`);
   }
 });
 
-function show(result) {
-  $('heard').textContent = result.heard.map((h) => h.symbol).join(' ');
-}
-
 $('audio-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (!file || !current) return log('load a model first');
-  const samples = await decodeAny(await file.arrayBuffer());
-  const r = await recognise(current, samples, (heard) => show({ heard }));
-  show(r);
-  log(`${(r.audioMs / 1000).toFixed(1)} s of audio in ${r.totalMs.toFixed(0)} ms (RTF ${r.rtf.toFixed(3)}), ${r.heard.length} symbols`);
+  if (!file || !current) return;
+  $('audio-status').textContent = 'جارٍ التعرّف…';
+  try {
+    const samples = await decodeAny(await file.arrayBuffer());
+    const r = await recognise(current, samples, show);
+    show(r.heard);
+    report(`ملف: ${file.name}`, r);
+    $('audio-status').textContent = '✓ انتهى';
+  } catch (err) {
+    $('audio-status').textContent = `✗ فشل: ${err.message}`;
+    log(`failed: ${err.stack ?? err.message}`);
+  }
 });
 
 let mic = null;
 $('mic').addEventListener('click', async () => {
-  if (!current) return log('load a model first');
+  if (!current) return;
   if (mic) {
-    mic.stop();
+    const m = mic;
     mic = null;
-    $('mic').textContent = 'تسجيل من الميكروفون';
+    $('mic').textContent = '🎙 ابدأ التسجيل';
+    await m.stop();
     return;
   }
-  const media = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-  const ctx = new AudioContext({ sampleRate: 16000 });
+  let media;
+  try {
+    media = await navigator.mediaDevices.getUserMedia({
+      audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+  } catch (err) {
+    $('audio-status').textContent = `✗ لا إذن بالميكروفون: ${err.message}`;
+    return;
+  }
+  const ctx = new AudioContext();
   const worklet = `registerProcessor('tap', class extends AudioWorkletProcessor {
     process(inputs) { if (inputs[0][0]) this.port.postMessage(inputs[0][0].slice()); return true; }
   });`;
   await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([worklet], { type: 'text/javascript' })));
   const node = new AudioWorkletNode(ctx, 'tap');
   ctx.createMediaStreamSource(media).connect(node);
+  const down = new Downsampler(ctx.sampleRate);
   const stream = current.createStream();
+  const t0 = performance.now();
   let busy = Promise.resolve();
   node.port.onmessage = ({ data }) => {
-    stream.acceptWaveform(data);
-    busy = busy.then(() => stream.decodeAvailable()).then(() => show({ heard: stream.result() }));
+    stream.acceptWaveform(down.push(data));
+    busy = busy.then(() => stream.decodeAvailable()).then(() => show(stream.result()));
   };
+  $('audio-status').textContent = `● يسجّل (${ctx.sampleRate} Hz)… اقرأ ثم اضغط «إيقاف»`;
   mic = {
     async stop() {
       media.getTracks().forEach((t) => t.stop());
       node.disconnect();
       await ctx.close();
+      const tStop = performance.now();
       await busy;
       stream.inputFinished();
       await stream.decodeAvailable();
-      show({ heard: stream.result() });
-      log(`mic: ${(stream.audioMs() / 1000).toFixed(1)} s, inference ${stream.inferenceMs.toFixed(0)} ms (RTF ${(stream.inferenceMs / stream.audioMs()).toFixed(3)})`);
+      const lagMs = performance.now() - tStop;
+      const audioMs = stream.audioMs();
+      show(stream.result());
+      // Live, what matters is the inference cost per second of audio, and how
+      // far behind the voice it finished.
+      report('الميكروفون', {
+        heard: stream.result(),
+        audioMs,
+        totalMs: stream.inferenceMs,
+        rtf: stream.inferenceMs / audioMs,
+      });
+      $('audio-status').textContent = `✓ انتهى — تأخّر آخر النتيجة عن آخر الصوت ${(lagMs / 1000).toFixed(1)} ث`;
+      log(`mic: ${(audioMs / 1000).toFixed(1)} s in ${((performance.now() - t0) / 1000).toFixed(1)} s wall, lag ${lagMs.toFixed(0)} ms`);
     },
   };
-  $('mic').textContent = 'إيقاف';
+  $('mic').textContent = '■ إيقاف';
 });
