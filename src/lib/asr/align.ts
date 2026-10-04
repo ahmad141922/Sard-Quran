@@ -348,6 +348,26 @@ export function findCandidates(
 
   const { steps } = trace(expected, heard, opts.band, opts.openEnd);
   const out: Candidate[] = [];
+
+  // Sounds per word, to tell a word left out from part of one — see below.
+  const wordKey = (p: ExpectedPhoneme) => (p.word === null ? null : `${p.anchorId}:${p.word}`);
+  const wordSize = new Map<string, number>();
+  for (const p of expected) {
+    const k = wordKey(p);
+    if (k !== null) wordSize.set(k, (wordSize.get(k) ?? 0) + 1);
+  }
+  /** The first word all of whose sounds are among these, if any. */
+  const firstWholeWord = (missing: ExpectedPhoneme[]): ExpectedPhoneme | undefined => {
+    const count = new Map<string, number>();
+    for (const p of missing) {
+      const k = wordKey(p);
+      if (k !== null) count.set(k, (count.get(k) ?? 0) + 1);
+    }
+    return missing.find(p => {
+      const k = wordKey(p);
+      return k !== null && count.get(k) === wordSize.get(k);
+    });
+  };
   let run: Step[] = [];
 
   const flush = () => {
@@ -374,11 +394,33 @@ export function findCandidates(
       : 1;
 
     if (expectedIn.length + heardIn.length < (rated ? minRun : minRunUnrated)) return;
+
+    /**
+     * A few sounds missing from the middle of a word whose other sounds were
+     * heard is the model swallowing an assimilated sound, not a reciter
+     * skipping. Seen on a correct al-Fātiḥa (synthesised speech, for now —
+     * spikes/asr-web): the model, native and web alike, never emitted the
+     * «لّا» of «بسم الله», and nothing else filtered it, because an omission
+     * has no heard sound to be unsure about.
+     *
+     * A memorisation slip leaves out a word; so a short omission must take a
+     * whole one with it. A long one (`minRunUnrated` or more) is reported
+     * either way — that is not a swallowed sound.
+     */
+    const whole = firstWholeWord(expectedIn);
+    if (!heardIn.length && expectedIn.length < minRunUnrated && !whole) return;
     if (rated && heardIn.length && (confidence as number) < minConfidence) return;
 
-    // An anchor is what the interface needs; the expected side always has one,
-    // and for a pure insertion we borrow the place it was inserted at.
-    const at = expectedIn[0] ?? expected[Math.min(first.e, expected.length - 1)];
+    /*
+     * An anchor is what the interface needs; the expected side always has one,
+     * and for a pure insertion we borrow the place it was inserted at.
+     *
+     * A run that takes out whole words points at the first of them, not at
+     * whatever sound it happens to begin with. Seen with «إياك نعبد و» left
+     * out of 1:5: the run began at the madd of «الدين» before it — which the
+     * model heard short — and sent the reciter to the wrong verse.
+     */
+    const at = whole ?? expectedIn[0] ?? expected[Math.min(first.e, expected.length - 1)];
     out.push({
       kind: kinds.size === 1 ? [...kinds][0] as DivergenceKind : 'substitution',
       anchorId: at.anchorId,

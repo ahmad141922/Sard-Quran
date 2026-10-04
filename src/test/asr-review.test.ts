@@ -121,7 +121,7 @@ describe('what an accepted candidate becomes', () => {
     const said = reviewRecitation(expect_('a b c d e f'), heard_('a b x y e f'), 9000, { minSounds: 0 });
     expect(candidateDetail(said.candidates[0], t as never)).toBe('asrHeard');
 
-    const left = reviewRecitation(expect_('a b c d e f'), heard_('a b e f'), 9000, { minSounds: 0 });
+    const left = reviewRecitation(expect_('a b c d e f g h i'), heard_('a b c g h i'), 9000, { minSounds: 0 });
     expect(candidateDetail(left.candidates[0], t as never)).toBe('asrOmitted');
 
     const added = reviewRecitation(expect_('a b c d'), heard_('a b x y c d'), 9000, { minSounds: 0 });
