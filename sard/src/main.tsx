@@ -16,6 +16,7 @@ import { applyTheme, initialTheme, subscribeTheme } from '@/lib/theme';
 import { matchStatusBar } from '@/lib/native';
 import { isNative } from '@/lib/native';
 import { installNativeAsr } from '@/lib/asr/native-engine';
+import { installWebAsr } from '@/lib/asr/web-engine';
 import { routeFor } from './route';
 
 // Before React paints anything: a bright flash on the way into a dark room is
@@ -58,6 +59,12 @@ subscribeTheme(t => { void matchStatusBar(t); });
  * the same as offering it.
  */
 if (isNative()) installNativeAsr();
+/*
+ * Everywhere else, the same model in the browser (`asr/web-engine.ts`). It
+ * fetches nothing at boot: the runtime and the 70 MB model load only after the
+ * reciter agrees, from the panel.
+ */
+else installWebAsr();
 import SardApp from './SardApp';
 
 /** Stable identity, so the provider does not re-derive its language each render. */

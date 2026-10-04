@@ -136,7 +136,7 @@ export const SoloListenPanel: React.FC<Props> = ({
             type="button"
             data-asr-start
             onClick={asr.start}
-            disabled={disabled || working || asr.phase === 'review'}
+            disabled={disabled || working || asr.phase === 'review' || asr.phase === 'consent'}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted disabled:opacity-40"
           >
             {working ? <Loader2 size={12} className="animate-spin" /> : <Mic size={12} />}
@@ -167,6 +167,38 @@ export const SoloListenPanel: React.FC<Props> = ({
           </button>
         )}
       </div>
+
+      {/*
+        The download is asked for, never assumed: about 70 MB the first time,
+        then kept on the device. Saying no leaves the majlis exactly as it was.
+      */}
+      {asr.phase === 'consent' && asr.consentBytes !== null && (
+        <div data-asr-consent className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-[11px] leading-relaxed">
+          <p className="font-bold text-foreground">{t('asrConsentTitle')}</p>
+          <p className="mt-1 text-muted-foreground">
+            {t('asrConsentBody').replace('{mb}', String(Math.round(asr.consentBytes / 1e6)))}
+          </p>
+          <p className="mt-1 text-muted-foreground">{t('asrNotATeacher')}</p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              data-asr-agree
+              onClick={asr.agree}
+              className="flex-1 rounded-full bg-emerald-600 px-3 py-1.5 font-bold text-white hover:bg-emerald-700"
+            >
+              {t('asrConsentAgree')}
+            </button>
+            <button
+              type="button"
+              data-asr-later
+              onClick={asr.cancel}
+              className="flex-1 rounded-full border border-border px-3 py-1.5 font-bold text-muted-foreground hover:bg-muted"
+            >
+              {t('asrConsentLater')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {asr.phase === 'listening' && (
         <div data-asr-listening className="mt-1 text-center text-[10px] text-muted-foreground">

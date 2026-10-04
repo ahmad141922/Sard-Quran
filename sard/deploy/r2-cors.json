@@ -5,6 +5,7 @@
         "origins": [
           "https://sard.tajweedoo.com",
           "https://sard-tajweedoo.pages.dev",
+          "https://asr.sard-tajweedoo.pages.dev",
           "https://localhost",
           "capacitor://localhost"
         ],

@@ -177,3 +177,35 @@ describe('one solo recitation', () => {
     expect(onAccept).not.toHaveBeenCalled();
   });
 });
+
+describe('the first time, before a 70 MB download', () => {
+  it('says the size and that it is not a teacher, and fetches only on «yes»', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), prepare, async needsDownload() { return 72_705_392; } });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+
+    await waitFor(() => expect(container.querySelector('[data-asr-consent]')).toBeTruthy());
+    const consent = container.querySelector('[data-asr-consent]')!.textContent!;
+    expect(consent).toContain('73');          // MB, as the download is announced
+    expect(consent).not.toContain('{mb}');
+    expect(prepare).not.toHaveBeenCalled();
+
+    fireEvent.click(container.querySelector('[data-asr-agree]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(prepare).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes back to the button on «later», having fetched nothing', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), prepare, async needsDownload() { return 72_705_392; } });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-later]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-later]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-consent]')).toBeNull());
+    expect(prepare).not.toHaveBeenCalled();
+  });
+});

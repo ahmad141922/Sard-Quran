@@ -243,3 +243,46 @@ describe('hearing the moment back', () => {
     expect(played).toContain(-1);
   });
 });
+
+describe('a download the reciter has not agreed to', () => {
+  const needing = (bytes: number | null, prepare = vi.fn(async () => true)): AsrEngine => ({
+    ...perfectEngine(), prepare, async needsDownload() { return bytes; },
+  });
+
+  it('is asked about, with its size, and nothing is fetched until they agree', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine(needing(72_705_392, prepare));
+    const { result } = renderHook(() => useAsrReview(quranIndex, at(1)));
+    await waitFor(() => expect(result.current.phase).toBe('idle'));
+    act(() => result.current.start());
+    await waitFor(() => expect(result.current.phase).toBe('consent'));
+    expect(result.current.consentBytes).toBe(72_705_392);
+    expect(prepare).not.toHaveBeenCalled();
+
+    act(() => result.current.agree());
+    await waitFor(() => expect(result.current.phase).toBe('listening'));
+    expect(prepare).toHaveBeenCalledTimes(1);
+  });
+
+  it('is dropped entirely when they say «later»', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine(needing(1000, prepare));
+    const { result } = renderHook(() => useAsrReview(quranIndex, at(1)));
+    await waitFor(() => expect(result.current.phase).toBe('idle'));
+    act(() => result.current.start());
+    await waitFor(() => expect(result.current.phase).toBe('consent'));
+    act(() => result.current.cancel());
+    await waitFor(() => expect(result.current.phase).toBe('idle'));
+    expect(result.current.consentBytes).toBeNull();
+    expect(prepare).not.toHaveBeenCalled();
+  });
+
+  it('is not asked about again once the model is on the device', async () => {
+    setAsrEngine(needing(null));
+    const { result } = renderHook(() => useAsrReview(quranIndex, at(1)));
+    await waitFor(() => expect(result.current.phase).toBe('idle'));
+    act(() => result.current.start());
+    await waitFor(() => expect(result.current.phase).toBe('listening'));
+    expect(result.current.consentBytes).toBeNull();
+  });
+});

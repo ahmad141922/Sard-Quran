@@ -44,11 +44,20 @@ export interface AsrEngine {
   /**
    * Fetches the model if it is not on the device yet.
    *
-   * Separate from `available` because it is 69 MB: it must be a thing the
+   * Separate from `available` because it is about 70 MB: it must be a thing the
    * reciter agrees to, on a screen that says the size, not something that
    * happens because they opened a page.
    */
   prepare(onProgress?: (fraction: number) => void): Promise<boolean>;
+  /**
+   * The bytes `prepare` would download, or null when the model is already on
+   * the device.
+   *
+   * The screen that asks before a 70 MB download reads this. Absent on an
+   * engine whose model arrives some other way (the Android plugin's is placed
+   * on the device), and then nothing is asked.
+   */
+  needsDownload?(): Promise<number | null>;
   start(): Promise<boolean>;
   stop(): Promise<RecognisedAudio | null>;
   cancel(): void;
@@ -86,6 +95,18 @@ export function nullEngine(): AsrEngine {
     async stop() { return null; },
     cancel() { /* nothing to cancel */ },
   };
+}
+
+/**
+ * Whether a recitation in this riwāya can be checked at all.
+ *
+ * The expected sounds come from `quran-phonemes.json`, which is Ḥafṣ ʿan
+ * ʿĀṣim. Checking a Warsh reciter against it would report every legitimate
+ * difference of the riwāya as a slip — the one error this feature must never
+ * make — so elsewhere the panel is not offered and the screen says why.
+ */
+export function asrSupportsRiwaya(riwayaId: string): boolean {
+  return riwayaId === 'hafs';
 }
 
 let engine: AsrEngine = nullEngine();
