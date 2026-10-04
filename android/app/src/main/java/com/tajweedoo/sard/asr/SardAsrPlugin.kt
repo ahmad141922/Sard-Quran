@@ -64,6 +64,8 @@ class SardAsrPlugin : Plugin() {
         const val MIC = "microphone"
 
         private const val SAMPLE_RATE = 16000
+        /** Same as the browser engine's — see `finish`. */
+        private const val TAIL_PADDING_SECONDS = 0.8f
         private const val MODEL_NAME = "zipformer_p_arabic_v3.int8.onnx"
         private const val TOKENS_NAME = "tokens.txt"
 
@@ -339,6 +341,10 @@ class SardAsrPlugin : Plugin() {
         val heard = JSArray()
         try {
             synchronized(lock) {
+                // Silence before the end: the streaming encoder only decodes a
+                // chunk once the frames after it exist, so without this the
+                // last half-second — often the last word — is never heard.
+                current.acceptWaveform(FloatArray((SAMPLE_RATE * TAIL_PADDING_SECONDS).toInt()), SAMPLE_RATE)
                 current.inputFinished()
                 while (engine.isReady(current)) engine.decode(current)
                 val result = engine.getResult(current)
