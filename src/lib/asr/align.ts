@@ -66,6 +66,13 @@ export interface Candidate {
    * null when the decoder rated none of them — see `HeardPhoneme`.
    */
   confidence: number | null;
+  /**
+   * Where the run sits in the heard sequence: `heard.slice(heardFrom, heardTo)`.
+   * Empty (from === to) for an omission. For looking at what was said around
+   * it — see `source.ts`.
+   */
+  heardFrom?: number;
+  heardTo?: number;
 }
 
 /**
@@ -356,6 +363,16 @@ export function findCandidates(
     const k = wordKey(p);
     if (k !== null) wordSize.set(k, (wordSize.get(k) ?? 0) + 1);
   }
+  /** See the idghām note in `flush`. */
+  const isUnmergedNun = (steps: Step[], exp: ExpectedPhoneme[], said: HeardPhoneme[]) => {
+    if (!exp.length || exp.length > 2 || !said.length || said.length > exp.length + 1) return false;
+    const e0 = steps.find(s => s.op !== 'insertion')!.e;
+    const before = expected[e0 - 1];
+    const startsWord = !before || wordKey(before) === null || wordKey(before) !== wordKey(expected[e0]);
+    const nun = (x: { symbol: string }) => x.symbol.startsWith('ن');
+    return startsWord && said.some(nun) && !exp.some(nun);
+  };
+
   /** The first word all of whose sounds are among these, if any. */
   const firstWholeWord = (missing: ExpectedPhoneme[]): ExpectedPhoneme | undefined => {
     const count = new Map<string, number>();
@@ -372,9 +389,13 @@ export function findCandidates(
 
   const flush = () => {
     if (!run.length) return;
-    const first = run[0];
+    const steps = run;
+    const first = steps[0];
     const kinds = new Set(run.map(s => s.op));
-    const heardIn = run.filter(s => s.op !== 'omission').map(s => heard[s.h]).filter(Boolean);
+    const heardSteps = run.filter(s => s.op !== 'omission');
+    const heardIn = heardSteps.map(s => heard[s.h]).filter(Boolean);
+    const heardFrom = heardSteps.length ? heardSteps[0].h : first.h;
+    const heardTo = heardSteps.length ? heardSteps[heardSteps.length - 1].h + 1 : first.h;
     const expectedIn = run.filter(s => s.op !== 'insertion').map(s => expected[s.e]).filter(Boolean);
     run = [];
 
@@ -409,6 +430,16 @@ export function findCandidates(
      */
     const whole = firstWholeWord(expectedIn);
     if (!heardIn.length && expectedIn.length < minRunUnrated && !whole) return;
+
+    /*
+     * A nūn said aloud at the start of a word, where the text merges the
+     * tanwīn or nūn sākina before it into that word (idghām), is how the
+     * junction was pronounced — tajwīd, which this tool says plainly it does
+     * not judge. Seen: «رَغَدًا وَادْخُلُوا» read as «رغدن وادخلوا» was raised
+     * as a slip. Narrow on purpose: the run must start a word, change at most
+     * two of its sounds, and differ by the nūn and nothing a word could hide.
+     */
+    if (isUnmergedNun(steps, expectedIn, heardIn)) return;
     if (rated && heardIn.length && (confidence as number) < minConfidence) return;
 
     /*
@@ -429,6 +460,8 @@ export function findCandidates(
       expected: expectedIn.map(e => e.symbol),
       heard: heardIn.map(h => h.symbol),
       confidence,
+      heardFrom,
+      heardTo,
     });
   };
 

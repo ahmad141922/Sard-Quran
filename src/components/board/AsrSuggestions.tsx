@@ -14,11 +14,12 @@
  */
 
 import React from 'react';
-import { Check, Play, X } from 'lucide-react';
+import { Check, Play, Shuffle, X } from 'lucide-react';
 
 import { useI18n } from '@/hooks/useI18n';
 import type { AsrReview } from '@/lib/asr/review';
 import { candidateDetail } from '@/lib/asr/review';
+import { surahName } from '@/lib/quran-data';
 import type { ReviewedCandidate } from '@/lib/asr/engine';
 
 interface Props {
@@ -155,6 +156,20 @@ export const AsrSuggestions: React.FC<Props> = ({
                 <div className="mt-1 text-muted-foreground">
                   {candidateDetail(candidate, t)}
                 </div>
+                {/*
+                  The cause, where the recording shows it: what was said here
+                  is another verse's wording. Named only when one verse matches
+                  plainly better than any other — see asr/source.ts.
+                */}
+                {candidate.source && (
+                  <div data-asr-source className="mt-1.5 flex items-start gap-1.5 rounded-md bg-amber-500/10 px-2 py-1 text-amber-900 dark:text-amber-200">
+                    <Shuffle size={12} className="mt-0.5 shrink-0" />
+                    <span>
+                      {t('asrSourceIs')}{' '}
+                      <bdi className="font-bold">{surahName(candidate.source.surah)} {candidate.source.ayah}</bdi>
+                    </span>
+                  </div>
+                )}
               </span>
 
               {/* Only where the recording is still to hand. */}

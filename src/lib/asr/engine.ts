@@ -131,6 +131,11 @@ export type CandidateVerdict = 'pending' | 'accepted' | 'dismissed';
 export interface ReviewedCandidate extends Candidate {
   id: string;
   verdict: CandidateVerdict;
+  /**
+   * The verse whose wording was said here instead, where the recording shows
+   * one plainly — see `source.ts`. Absent or null means nothing is claimed.
+   */
+  source?: import('./source').Source | null;
 }
 
 let seq = 0;

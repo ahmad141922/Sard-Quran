@@ -261,3 +261,30 @@ describe('where a candidate points', () => {
     expect(big.word).toBe(0);
   });
 });
+
+/**
+ * Seen on al-Baqara 58 (synthesised speech): «رَغَدًا وَادْخُلُوا» read without
+ * its idghām, as «رغدن وادخلوا», was raised as a slip. How a tanwīn joins the
+ * next word is tajwīd, which the tool does not judge.
+ */
+describe('a nūn said where the text merges it', () => {
+  // «رغدا» [0..2] then «وادخلوا» [3..7]; the merge is «وووَ دڇ».
+  const exp: ExpectedPhoneme[] = [
+    ['رَ', 0], ['غَ', 0], ['دَ', 0], ['وووَ', 1], ['دڇ', 1], ['خُ', 1], ['لُ', 1], ['ۦۦ', 1],
+  ].map(([symbol, word]) => ({ symbol: symbol as string, anchorId: 58, word: word as number }));
+  const unrated = (s: string) => heard_(s).map(h => ({ ...h, confidence: null }));
+
+  it('is not a slip', () => {
+    expect(findCandidates(exp, unrated('رَ غَ دَ ن وَ د خُ لُ ۦۦ'), { minRunUnrated: 2 })).toEqual([]);
+  });
+
+  it('is still a slip when the word itself changed', () => {
+    // «فادخلوا» for «وادخلوا»: no nūn, a different word.
+    expect(findCandidates(exp, unrated('رَ غَ دَ فَ د خُ لُ ۦۦ'), { minRunUnrated: 2 }).length).toBeGreaterThan(0);
+  });
+
+  it('is still a slip in the middle of a word', () => {
+    const word: ExpectedPhoneme[] = ['ءَ', 'ررَ', 'حِ', 'ۦۦۦۦ', 'م'].map(symbol => ({ symbol, anchorId: 3, word: 1 }));
+    expect(findCandidates(word, unrated('ءَ ن كَ رِ ۦۦ م'))).toHaveLength(1);
+  });
+});

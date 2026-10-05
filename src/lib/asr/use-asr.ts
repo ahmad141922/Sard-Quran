@@ -21,6 +21,7 @@ import { asrEngine } from './engine';
 import { loadQuranPhonemes, type AyahRef, type QuranPhonemes } from './phonemes';
 import { answer, dismissRest, reviewRecitation, type AsrReview } from './review';
 import { reached } from './align';
+import { sourceOfCandidate } from './source';
 import { START, followStep, moved, type Ahead, type At, type FollowState } from './follow';
 import type { QuranIndex } from '../quran-index';
 
@@ -346,8 +347,16 @@ export function useAsrReview(
        */
       const padded = passageFor(index, phonemes, from.current, at, heard.phonemes.length);
       const got = reached(phonemes.expected(padded), heard.phonemes);
-      const expected = phonemes.expected(trimToVerse(padded, phonemes, got));
-      const next = reviewRecitation(expected, heard.phonemes, heard.durationMs);
+      const recited = trimToVerse(padded, phonemes, got);
+      const expected = phonemes.expected(recited);
+      const reviewed = reviewRecitation(expected, heard.phonemes, heard.durationMs);
+      // Where a slip is another verse's wording, say which — see `source.ts`.
+      const next = {
+        ...reviewed,
+        candidates: reviewed.candidates.map(c => ({
+          ...c, source: sourceOfCandidate(phonemes, c, heard.phonemes, recited),
+        })),
+      };
 
       setAt(null);
       setReview(next);

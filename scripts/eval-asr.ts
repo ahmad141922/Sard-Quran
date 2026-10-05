@@ -36,6 +36,7 @@ import {
 } from '@/lib/asr/evaluate';
 import { phonemesFromFile } from '@/lib/asr/phonemes';
 import { trimToVerse } from '@/lib/asr/use-asr';
+import { sourceOfCandidate } from '@/lib/asr/source';
 import { Recognizer, SAMPLE_RATE, type OrtLike } from '@/lib/asr/web/recognizer';
 
 const TAIL_PADDING_SECONDS = 0.8; // as in src/lib/asr/web-engine.ts
@@ -190,7 +191,11 @@ const verdictAr: Record<string, string> = {
 for (const r of shipping.scored) {
   const l = r.label;
   const tag = l.errorType === 'none' ? 'سليم' : `${l.errorType} ${l.surah}:${l.errorAyah}${l.errorWord ? ` ك${l.errorWord}` : ''}`;
-  const shown = r.candidates.map(c => `${c.kind} ${where(c.anchorId, c.word)}`).join('<br>') || '—';
+  const recitedVerses = Array.from({ length: l.toAyah - l.fromAyah + 1 }, (_, i) => ({ surah: l.surah, ayah: l.fromAyah + i }));
+  const shown = r.candidates.map(c => {
+    const src = sourceOfCandidate(phonemes, c, heardBy.get(l.file)!.phonemes, recitedVerses);
+    return `${c.kind} ${where(c.anchorId, c.word)}${src ? ` ← لفظ ${src.surah}:${src.ayah}` : ''}`;
+  }).join('<br>') || '—';
   lines.push(`| ${l.file} | ${tag} | ${shown} | ${verdictAr[r.outcome]} | ${pct(r.agreement)} |`);
 }
 
