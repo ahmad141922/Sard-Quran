@@ -30,7 +30,8 @@
     "ios:run": "npx cap run ios",
     "dev": "npm run dev:sard",
     "build": "npm run build:sard",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit"
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "eval:asr": "esbuild scripts/eval-asr.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.cache/eval-asr.mjs --log-level=warning && node .cache/eval-asr.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.8",
