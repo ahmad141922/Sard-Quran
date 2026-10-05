@@ -44,3 +44,6 @@ android/keystore.properties
 
 # The ASR model is side-loaded onto the device, never bundled.
 *.onnx
+
+# Supabase CLI cache: the linked project and pooler URL of whoever ran it.
+sard/backend/supabase/.temp/
