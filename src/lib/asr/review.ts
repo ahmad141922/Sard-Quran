@@ -18,6 +18,7 @@ import { MIN_AGREEMENT, agreement, findCandidates } from './align';
 import { toReviewed, type ReviewedCandidate } from './engine';
 import type { Candidate, ExpectedPhoneme, HeardPhoneme } from './align';
 import type { NoteKind } from '../recitation-session';
+import type { AyahRef, QuranPhonemes } from './phonemes';
 
 /**
  * What came of listening to one recitation.
@@ -74,6 +75,41 @@ export function reviewRecitation(
     candidates: followed ? toReviewed(findCandidates(expected, heard, { openEnd })) : [],
     durationMs,
   };
+}
+
+/**
+ * The basmala a reciter may say before the first verse of a sūra.
+ *
+ * Saying it there is the sunna, and leaving it out is no mistake either, so
+ * neither may be reported. Al-Fātiḥa needs none (its basmala is its first
+ * verse) and at-Tawba has none. Seen on a human recitation of al-Ikhlāṣ: the
+ * basmala before «قل هو الله أحد» was raised as words added.
+ */
+export function basmalaBefore(phonemes: QuranPhonemes, first: AyahRef | undefined): ExpectedPhoneme[] {
+  if (!first || first.ayah !== 1 || first.surah === 1 || first.surah === 9) return [];
+  // Counted against the sūra's first verse, at no word: a slip inside it
+  // points at the verse, not at a word of it.
+  return phonemes.expected([{ surah: 1, ayah: 1, anchorId: first.anchorId }]).map(p => ({ ...p, word: null }));
+}
+
+/** How much of the passage two readings disagree on — lower reads it better. */
+export function divergence(candidates: Candidate[]): number {
+  return candidates.reduce((n, c) => n + c.expected.length + c.heard.length, 0);
+}
+
+/**
+ * `reviewRecitation`, with the basmala allowed — not required — before the
+ * passage. Both readings are aligned and the closer one is kept.
+ */
+export function reviewWithOpening(
+  opening: ExpectedPhoneme[], expected: ExpectedPhoneme[], heard: HeardPhoneme[], durationMs: number,
+): AsrReview {
+  const plain = reviewRecitation(expected, heard, durationMs);
+  if (!opening.length) return plain;
+  const opened = reviewRecitation([...opening, ...expected], heard, durationMs);
+  if (opened.followed && !plain.followed) return opened;
+  if (opened.followed && divergence(opened.candidates) < divergence(plain.candidates)) return opened;
+  return plain;
 }
 
 /**

@@ -19,7 +19,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { asrEngine } from './engine';
 import { loadQuranPhonemes, type AyahRef, type QuranPhonemes } from './phonemes';
-import { answer, dismissRest, reviewRecitation, type AsrReview } from './review';
+import { answer, basmalaBefore, dismissRest, reviewWithOpening, type AsrReview } from './review';
 import { reached } from './align';
 import { sourceOfCandidate } from './source';
 import { START, followStep, moved, type Ahead, type At, type FollowState } from './follow';
@@ -349,7 +349,7 @@ export function useAsrReview(
       const got = reached(phonemes.expected(padded), heard.phonemes);
       const recited = trimToVerse(padded, phonemes, got);
       const expected = phonemes.expected(recited);
-      const reviewed = reviewRecitation(expected, heard.phonemes, heard.durationMs);
+      const reviewed = reviewWithOpening(basmalaBefore(phonemes, recited[0]), expected, heard.phonemes, heard.durationMs);
       // Where a slip is another verse's wording, say which — see `source.ts`.
       const next = {
         ...reviewed,

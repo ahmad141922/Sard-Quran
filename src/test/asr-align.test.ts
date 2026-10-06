@@ -288,3 +288,19 @@ describe('a nūn said where the text merges it', () => {
     expect(findCandidates(word, unrated('ءَ ن كَ رِ ۦۦ م'))).toHaveLength(1);
   });
 });
+
+/**
+ * Seen on a human recitation of al-Fātiḥa: «…عليهم غير المغضوب عليهم غير
+ * المغضوب عليهم ولا الضالين». Going back over a phrase is tardīd, not words
+ * added to the Qur'an.
+ */
+describe('words said again', () => {
+  it('is not an addition when the reciter repeats what they just said', () => {
+    // a b c | d e f | g h i — «d e f» said twice.
+    expect(findCandidates(expect_('a b c d e f g h i'), heard_('a b c d e f d e f g h i'))).toEqual([]);
+  });
+
+  it('is still an addition when the words are not the text around them', () => {
+    expect(findCandidates(expect_('a b c d e f g h i'), heard_('a b c d e f x y z g h i'))).toHaveLength(1);
+  });
+});

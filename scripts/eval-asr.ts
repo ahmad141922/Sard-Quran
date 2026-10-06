@@ -36,6 +36,7 @@ import {
 } from '@/lib/asr/evaluate';
 import { phonemesFromFile } from '@/lib/asr/phonemes';
 import { trimToVerse } from '@/lib/asr/use-asr';
+import { basmalaBefore } from '@/lib/asr/review';
 import { sourceOfCandidate } from '@/lib/asr/source';
 import { Recognizer, SAMPLE_RATE, type OrtLike } from '@/lib/asr/web/recognizer';
 
@@ -152,12 +153,14 @@ const expectedBy = new Map(labels.map(l => {
     return { surah: l.surah, ayah, anchorId: evalAnchor(l.surah, ayah) };
   });
   const got = reached(phonemes.expected(range), heardBy.get(l.file)!.phonemes);
-  return [l.file, phonemes.expected(trimToVerse(range, phonemes, got))];
+  const recited = trimToVerse(range, phonemes, got);
+  return [l.file, { expected: phonemes.expected(recited), opening: basmalaBefore(phonemes, recited[0]) }];
 }));
-const expectedFor = (l: Label) => expectedBy.get(l.file)!;
+const expectedFor = (l: Label) => expectedBy.get(l.file)!.expected;
+const openingFor = (l: Label) => expectedBy.get(l.file)!.opening;
 
 function run(settings: Settings): { scored: Scored[]; summary: Summary } {
-  const scored = labels.map(l => score(l, candidatesFor(expectedFor(l), heardBy.get(l.file)!.phonemes, settings)));
+  const scored = labels.map(l => score(l, candidatesFor(expectedFor(l), heardBy.get(l.file)!.phonemes, settings, openingFor(l))));
   return { scored, summary: summarise(scored) };
 }
 

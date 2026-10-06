@@ -22,7 +22,7 @@
  */
 
 import { findCandidates, agreement, MIN_AGREEMENT, type Candidate, type ExpectedPhoneme, type HeardPhoneme } from './align';
-import { MIN_SOUNDS } from './review';
+import { MIN_SOUNDS, divergence } from './review';
 
 export type ErrorType = 'none' | 'substitution' | 'omission' | 'insertion' | 'mutashabih' | 'haraka' | 'madd';
 
@@ -85,6 +85,19 @@ export interface Settings {
  * the calibration turns exposed.
  */
 export function candidatesFor(
+  expected: ExpectedPhoneme[], heard: HeardPhoneme[], settings: Settings,
+  /** The basmala a sūra may open with — allowed, as `reviewWithOpening` allows it. */
+  opening: ExpectedPhoneme[] = [],
+): { followed: boolean; agreement: number; candidates: Candidate[] } {
+  const plain = readingOf(expected, heard, settings);
+  if (!opening.length) return plain;
+  const opened = readingOf([...opening, ...expected], heard, settings);
+  if (opened.followed && !plain.followed) return opened;
+  if (opened.followed && divergence(opened.candidates) < divergence(plain.candidates)) return opened;
+  return plain;
+}
+
+function readingOf(
   expected: ExpectedPhoneme[], heard: HeardPhoneme[], settings: Settings,
 ): { followed: boolean; agreement: number; candidates: Candidate[] } {
   const h = settings.confidence ? heard : heard.map(p => ({ ...p, confidence: null }));

@@ -1,0 +1,5 @@
+file,surah,from_ayah,to_ayah,error_type,error_ayah,error_word,what_was_said,teacher_confirmed,notes
+fatiha-correct.wav,1,1,7,none,,,,,synthetic
+fatiha-wrong.wav,1,1,7,substitution,3,2,الكريم بدل الرحيم,,synthetic (also drops 5:1-2)
+baqara58-correct.wav,2,58,58,none,,,,,synthetic
+baqara58-araf161.wav,2,58,58,mutashabih,58,2,وإذ قيل لهم اسكنوا (الأعراف 161),,synthetic

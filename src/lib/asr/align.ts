@@ -109,6 +109,25 @@ export const MIN_RUN = 2;
  */
 export const MIN_RUN_UNRATED = 5;
 
+/**
+ * How far a repeated stretch may differ from the text it repeats, as a share
+ * of its length — the recogniser hears a phrase a little differently each
+ * time it is said. See `findCandidates`.
+ */
+export const MAX_REPEAT_DRIFT = 0.2;
+
+function editDistance(a: string[], b: string[]): number {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
 interface Step { op: 'match' | DivergenceKind; e: number; h: number }
 
 /**
@@ -363,6 +382,17 @@ export function findCandidates(
     const k = wordKey(p);
     if (k !== null) wordSize.set(k, (wordSize.get(k) ?? 0) + 1);
   }
+  /** Whether `said`, inserted before expected[at], repeats the text either side of it. */
+  const isRepeat = (at: number, said: HeardPhoneme[]) => {
+    const n = said.length;
+    if (n < 3) return false;
+    const near = (from: number) => {
+      const window = expected.slice(Math.max(0, from), Math.max(0, from) + n).map(p => p.symbol);
+      return window.length === n && editDistance(said.map(h => h.symbol), window) <= Math.floor(n * MAX_REPEAT_DRIFT);
+    };
+    return near(at - n) || near(at);
+  };
+
   /** See the idghām note in `flush`. */
   const isUnmergedNun = (steps: Step[], exp: ExpectedPhoneme[], said: HeardPhoneme[]) => {
     if (!exp.length || exp.length > 2 || !said.length || said.length > exp.length + 1) return false;
@@ -440,6 +470,15 @@ export function findCandidates(
      * two of its sounds, and differ by the nūn and nothing a word could hide.
      */
     if (isUnmergedNun(steps, expectedIn, heardIn)) return;
+
+    /*
+     * Words said again: the reciter went back and repeated what they had just
+     * recited (or what comes next, having started it early). That is tardīd —
+     * hesitation, which the majlis records with its own button — not a word
+     * added to the Qur'an. Seen on a human recitation of al-Fātiḥa 7:
+     * «…عليهم غير المغضوب عليهم غير المغضوب عليهم ولا الضالين».
+     */
+    if (kinds.size === 1 && kinds.has('insertion') && isRepeat(first.e, heardIn)) return;
     if (rated && heardIn.length && (confidence as number) < minConfidence) return;
 
     /*
