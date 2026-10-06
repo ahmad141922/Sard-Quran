@@ -18,16 +18,16 @@ R2 بنطاقه، والأداة تُبنى وهي تعرف عنوانه.
 | | |
 |---|---|
 | سوبابيز | `Sard's Project` · `alzsjurcstjpqqwscpfi` — **الجدول والدالّة والسرّ جاهزة** |
-| Cloudflare | حساب `Amsf321@gmail.com` · `7393495bdb6886a56715b1fbc67961ff` (نطاق tajweedoo.com فيه) |
+| Cloudflare | حساب المالك · معرّف الحساب في لوحة Cloudflare (نطاق tajweedoo.com فيه) |
 | دلو R2 | `sard` — **أُنشئ**، وينتظر الرفع والنطاق وCORS |
 
 الحساب فيه حسابان على الدخول نفسه، فكل أمر لـwrangler يحتاج:
 
 ```bash
-export CLOUDFLARE_ACCOUNT_ID=7393495bdb6886a56715b1fbc67961ff
+export CLOUDFLARE_ACCOUNT_ID=<معرّف حساب Cloudflare>
 ```
 
-(في PowerShell: `$env:CLOUDFLARE_ACCOUNT_ID="7393495bdb6886a56715b1fbc67961ff"`)
+(في PowerShell: `$env:CLOUDFLARE_ACCOUNT_ID="<معرّف حساب Cloudflare>"`)
 
 ---
 

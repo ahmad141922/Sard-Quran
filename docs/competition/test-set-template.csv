@@ -1,0 +1,4 @@
+file,surah,from_ayah,to_ayah,error_type,error_ayah,error_word,what_was_said,teacher_confirmed,notes
+01-fatiha-1-7.m4a,1,1,7,none,,,,yes,تلاوة سليمة
+02-fatiha-1-7.m4a,1,1,7,substitution,3,2,الكريم بدل الرحيم,yes,
+03-fatiha-1-7.m4a,1,1,7,omission,5,1,سقط إياك نعبد,yes,

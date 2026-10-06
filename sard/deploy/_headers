@@ -18,6 +18,13 @@
 /index.html
   Cache-Control: no-cache
 
+# Cross-origin isolation lets the recogniser run on several threads. COEP is
+# `credentialless`, not `require-corp`: the muṣḥaf plates come from R2 without
+# a CORP header, and credentialless loads them all the same (no cookies are
+# sent to it anyway). Browsers without it simply are not isolated, and the
+# recogniser runs on one thread — measured faster than real time.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless

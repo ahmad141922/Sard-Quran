@@ -14,3 +14,13 @@
  * it that has not been released. Off so the polish work can ship on its own.
  */
 export const RECITATION_REVIEW_SECTION = false;
+
+/**
+ * Whether the browser recogniser reports a probability for each sound.
+ *
+ * sherpa's greedy CTC — the Android path — throws it away, so `align.ts` has
+ * only ever run its no-confidence branch. The web recogniser keeps it
+ * (`Heard.prob`). Off until the threshold in `align.ts` is calibrated on the
+ * labelled recordings, so turning it on is a measured decision, not a guess.
+ */
+export const WEB_ASR_CONFIDENCE = false;

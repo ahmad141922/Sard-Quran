@@ -66,6 +66,13 @@ export interface Candidate {
    * null when the decoder rated none of them — see `HeardPhoneme`.
    */
   confidence: number | null;
+  /**
+   * Where the run sits in the heard sequence: `heard.slice(heardFrom, heardTo)`.
+   * Empty (from === to) for an omission. For looking at what was said around
+   * it — see `source.ts`.
+   */
+  heardFrom?: number;
+  heardTo?: number;
 }
 
 /**
@@ -101,6 +108,25 @@ export const MIN_RUN = 2;
  * asked and says yes.
  */
 export const MIN_RUN_UNRATED = 5;
+
+/**
+ * How far a repeated stretch may differ from the text it repeats, as a share
+ * of its length — the recogniser hears a phrase a little differently each
+ * time it is said. See `findCandidates`.
+ */
+export const MAX_REPEAT_DRIFT = 0.2;
+
+function editDistance(a: string[], b: string[]): number {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
 
 interface Step { op: 'match' | DivergenceKind; e: number; h: number }
 
@@ -348,13 +374,58 @@ export function findCandidates(
 
   const { steps } = trace(expected, heard, opts.band, opts.openEnd);
   const out: Candidate[] = [];
+
+  // Sounds per word, to tell a word left out from part of one — see below.
+  const wordKey = (p: ExpectedPhoneme) => (p.word === null ? null : `${p.anchorId}:${p.word}`);
+  const wordSize = new Map<string, number>();
+  for (const p of expected) {
+    const k = wordKey(p);
+    if (k !== null) wordSize.set(k, (wordSize.get(k) ?? 0) + 1);
+  }
+  /** Whether `said`, inserted before expected[at], repeats the text either side of it. */
+  const isRepeat = (at: number, said: HeardPhoneme[]) => {
+    const n = said.length;
+    if (n < 3) return false;
+    const near = (from: number) => {
+      const window = expected.slice(Math.max(0, from), Math.max(0, from) + n).map(p => p.symbol);
+      return window.length === n && editDistance(said.map(h => h.symbol), window) <= Math.floor(n * MAX_REPEAT_DRIFT);
+    };
+    return near(at - n) || near(at);
+  };
+
+  /** See the idghām note in `flush`. */
+  const isUnmergedNun = (steps: Step[], exp: ExpectedPhoneme[], said: HeardPhoneme[]) => {
+    if (!exp.length || exp.length > 2 || !said.length || said.length > exp.length + 1) return false;
+    const e0 = steps.find(s => s.op !== 'insertion')!.e;
+    const before = expected[e0 - 1];
+    const startsWord = !before || wordKey(before) === null || wordKey(before) !== wordKey(expected[e0]);
+    const nun = (x: { symbol: string }) => x.symbol.startsWith('ن');
+    return startsWord && said.some(nun) && !exp.some(nun);
+  };
+
+  /** The first word all of whose sounds are among these, if any. */
+  const firstWholeWord = (missing: ExpectedPhoneme[]): ExpectedPhoneme | undefined => {
+    const count = new Map<string, number>();
+    for (const p of missing) {
+      const k = wordKey(p);
+      if (k !== null) count.set(k, (count.get(k) ?? 0) + 1);
+    }
+    return missing.find(p => {
+      const k = wordKey(p);
+      return k !== null && count.get(k) === wordSize.get(k);
+    });
+  };
   let run: Step[] = [];
 
   const flush = () => {
     if (!run.length) return;
-    const first = run[0];
+    const steps = run;
+    const first = steps[0];
     const kinds = new Set(run.map(s => s.op));
-    const heardIn = run.filter(s => s.op !== 'omission').map(s => heard[s.h]).filter(Boolean);
+    const heardSteps = run.filter(s => s.op !== 'omission');
+    const heardIn = heardSteps.map(s => heard[s.h]).filter(Boolean);
+    const heardFrom = heardSteps.length ? heardSteps[0].h : first.h;
+    const heardTo = heardSteps.length ? heardSteps[heardSteps.length - 1].h + 1 : first.h;
     const expectedIn = run.filter(s => s.op !== 'insertion').map(s => expected[s.e]).filter(Boolean);
     run = [];
 
@@ -374,11 +445,52 @@ export function findCandidates(
       : 1;
 
     if (expectedIn.length + heardIn.length < (rated ? minRun : minRunUnrated)) return;
+
+    /**
+     * A few sounds missing from the middle of a word whose other sounds were
+     * heard is the model swallowing an assimilated sound, not a reciter
+     * skipping. Seen on a correct al-Fātiḥa (synthesised speech, for now —
+     * spikes/asr-web): the model, native and web alike, never emitted the
+     * «لّا» of «بسم الله», and nothing else filtered it, because an omission
+     * has no heard sound to be unsure about.
+     *
+     * A memorisation slip leaves out a word; so a short omission must take a
+     * whole one with it. A long one (`minRunUnrated` or more) is reported
+     * either way — that is not a swallowed sound.
+     */
+    const whole = firstWholeWord(expectedIn);
+    if (!heardIn.length && expectedIn.length < minRunUnrated && !whole) return;
+
+    /*
+     * A nūn said aloud at the start of a word, where the text merges the
+     * tanwīn or nūn sākina before it into that word (idghām), is how the
+     * junction was pronounced — tajwīd, which this tool says plainly it does
+     * not judge. Seen: «رَغَدًا وَادْخُلُوا» read as «رغدن وادخلوا» was raised
+     * as a slip. Narrow on purpose: the run must start a word, change at most
+     * two of its sounds, and differ by the nūn and nothing a word could hide.
+     */
+    if (isUnmergedNun(steps, expectedIn, heardIn)) return;
+
+    /*
+     * Words said again: the reciter went back and repeated what they had just
+     * recited (or what comes next, having started it early). That is tardīd —
+     * hesitation, which the majlis records with its own button — not a word
+     * added to the Qur'an. Seen on a human recitation of al-Fātiḥa 7:
+     * «…عليهم غير المغضوب عليهم غير المغضوب عليهم ولا الضالين».
+     */
+    if (kinds.size === 1 && kinds.has('insertion') && isRepeat(first.e, heardIn)) return;
     if (rated && heardIn.length && (confidence as number) < minConfidence) return;
 
-    // An anchor is what the interface needs; the expected side always has one,
-    // and for a pure insertion we borrow the place it was inserted at.
-    const at = expectedIn[0] ?? expected[Math.min(first.e, expected.length - 1)];
+    /*
+     * An anchor is what the interface needs; the expected side always has one,
+     * and for a pure insertion we borrow the place it was inserted at.
+     *
+     * A run that takes out whole words points at the first of them, not at
+     * whatever sound it happens to begin with. Seen with «إياك نعبد و» left
+     * out of 1:5: the run began at the madd of «الدين» before it — which the
+     * model heard short — and sent the reciter to the wrong verse.
+     */
+    const at = whole ?? expectedIn[0] ?? expected[Math.min(first.e, expected.length - 1)];
     out.push({
       kind: kinds.size === 1 ? [...kinds][0] as DivergenceKind : 'substitution',
       anchorId: at.anchorId,
@@ -387,6 +499,8 @@ export function findCandidates(
       expected: expectedIn.map(e => e.symbol),
       heard: heardIn.map(h => h.symbol),
       confidence,
+      heardFrom,
+      heardTo,
     });
   };
 

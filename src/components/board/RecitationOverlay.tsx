@@ -31,6 +31,7 @@ import CorrectionRecorder from './CorrectionRecorder';
 import SoloListenPanel from './SoloListenPanel';
 import QuranSearchBox from './QuranSearchBox';
 import { ACCEPTED_KIND } from '@/lib/asr/review';
+import { asrSupportsRiwaya } from '@/lib/asr/engine';
 import {
   AYAH_COUNTING, CANONICAL_COUNTING, countingName, mushafFullName, type MushafDefinition,
 } from '@/lib/mushaf/registry';
@@ -1218,7 +1219,18 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
               whether something it noticed was a slip. It draws nothing at all
               where the recogniser cannot run — see `SoloListenPanel`.
             */}
-            {sessionMode(session) === 'solo' && (
+            {/*
+              Hafs only. The phoneme index the recitation is held against is
+              built from the Hafs text, so in any other riwaya a reading that
+              is correct there would be counted a slip — the one mistake this
+              feature must never make (docs/competition/scientific-compliance.md).
+            */}
+            {sessionMode(session) === 'solo' && !asrSupportsRiwaya(activeMushaf.riwayaId) && (
+              <p data-asr-hafs-only className="mb-1 px-2 text-center text-[10px] leading-relaxed text-muted-foreground short:hidden">
+                {t('asrHafsOnly')}
+              </p>
+            )}
+            {sessionMode(session) === 'solo' && asrSupportsRiwaya(activeMushaf.riwayaId) && (
               <div className="mb-1 short:hidden">
                 <SoloListenPanel
                   onAt={setHeard}

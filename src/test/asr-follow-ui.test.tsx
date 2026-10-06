@@ -79,7 +79,8 @@ const mount = (onFollow?: (id: number) => void) => render(
   </I18nProvider>,
 );
 
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); });
+// The first-use explainer is its own test (asr-solo-panel); here it has been read.
+beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); localStorage.setItem('sard:asr-intro-v1', '1'); });
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); vi.useRealTimers(); });
 
 describe('whether it is offered at all', () => {

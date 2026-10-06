@@ -30,7 +30,8 @@
     "ios:run": "npx cap run ios",
     "dev": "npm run dev:sard",
     "build": "npm run build:sard",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit"
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "eval:asr": "esbuild scripts/eval-asr.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.cache/eval-asr.mjs --log-level=warning && node .cache/eval-asr.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.8",
@@ -45,6 +46,7 @@
     "@supabase/supabase-js": "^2.109.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.7.0",
+    "onnxruntime-web": "1.23.2",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

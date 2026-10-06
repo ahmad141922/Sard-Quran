@@ -85,6 +85,20 @@ export default defineConfig({
         // A precache from an older build is a shell that asks for files this
         // deploy no longer has; keeping it around only risks serving it.
         cleanupOutdatedCaches: true,
+        // The speech recogniser's runtime (12 MB of .wasm) and its symbol list
+        // are kept out of the precache: most reciters never turn it on. Once
+        // fetched — after they agree to the model download — they are kept, so
+        // it works offline from then on. The model itself lives in its own
+        // Cache API store (src/lib/asr/web-engine.ts).
+        runtimeCaching: [
+          {
+            // A RegExp, not a function: the worker is generated from this
+            // config, and a function's closure over BASE would not survive it.
+            urlPattern: new RegExp(`${BASE.replace(/[/.]/g, "\\$&")}(?:assets/ort-wasm[^/]*\\.wasm|asr/tokens\\.txt)$`),
+            handler: "CacheFirst",
+            options: { cacheName: "sard-asr-runtime-v1", expiration: { maxEntries: 4 } },
+          },
+        ],
       },
     }),
   ],

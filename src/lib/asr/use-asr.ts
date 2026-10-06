@@ -19,8 +19,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { asrEngine } from './engine';
 import { loadQuranPhonemes, type AyahRef, type QuranPhonemes } from './phonemes';
-import { answer, dismissRest, reviewRecitation, type AsrReview } from './review';
+import { answer, basmalaBefore, dismissRest, reviewWithOpening, type AsrReview } from './review';
 import { reached } from './align';
+import { sourceOfCandidate } from './source';
 import { START, followStep, moved, type Ahead, type At, type FollowState } from './follow';
 import type { QuranIndex } from '../quran-index';
 
@@ -28,6 +29,8 @@ export type AsrPhase =
   /** No plugin, no model, or no microphone. The button is not drawn. */
   | 'unavailable'
   | 'idle'
+  /** Waiting for the reciter to agree to download the model — see `consent`. */
+  | 'consent'
   | 'preparing'
   | 'listening'
   | 'reading'
@@ -60,7 +63,11 @@ export interface AsrController {
    * mid-word. For showing only; the marker follows the confirmed verse.
    */
   at: At | null;
+  /** While `phase` is 'consent': the size of the download being asked about. */
+  consentBytes: number | null;
   start(): void;
+  /** The reciter agreed to the download: fetch the model and start listening. */
+  agree(): void;
   stop(): void;
   cancel(): void;
   say(id: string, verdict: 'accepted' | 'dismissed'): void;
@@ -188,6 +195,7 @@ export function useAsrReview(
   const [progress, setProgress] = useState<number | null>(null);
   const [review, setReview] = useState<AsrReview | null>(null);
   const [canPlay, setCanPlay] = useState(false);
+  const [consentBytes, setConsentBytes] = useState<number | null>(null);
   const from = useRef<number | null>(null);
   const follow = useRef<FollowState>(START);
   const [at, setAt] = useState<At | null>(null);
@@ -209,13 +217,9 @@ export function useAsrReview(
     };
   }, []);
 
-  const start = useCallback(() => {
-    const at = anchorNow();
-    if (at === null) return;
-    from.current = at;
-    follow.current = START;
-    setAt(null);
-    setReview(null);
+  /** Fetches the model if need be, then opens the microphone. */
+  const begin = useCallback(() => {
+    setConsentBytes(null);
     setPhase('preparing');
     setProgress(0);
 
@@ -231,7 +235,31 @@ export function useAsrReview(
       if (!alive.current) return;
       setPhase(started ? 'listening' : 'idle');
     })();
-  }, [anchorNow]);
+  }, []);
+
+  const start = useCallback(() => {
+    const at = anchorNow();
+    if (at === null) return;
+    from.current = at;
+    follow.current = START;
+    setAt(null);
+    setReview(null);
+
+    (async () => {
+      /*
+       * A download the reciter has not agreed to never starts. The engine says
+       * how big it would be; the panel asks; `agree` carries on from here.
+       */
+      const bytes = await asrEngine().needsDownload?.().catch(() => null) ?? null;
+      if (!alive.current) return;
+      if (bytes) {
+        setConsentBytes(bytes);
+        setPhase('consent');
+        return;
+      }
+      begin();
+    })();
+  }, [anchorNow, begin]);
 
   /**
    * The marker catching up, while the recitation is still going.
@@ -319,8 +347,16 @@ export function useAsrReview(
        */
       const padded = passageFor(index, phonemes, from.current, at, heard.phonemes.length);
       const got = reached(phonemes.expected(padded), heard.phonemes);
-      const expected = phonemes.expected(trimToVerse(padded, phonemes, got));
-      const next = reviewRecitation(expected, heard.phonemes, heard.durationMs);
+      const recited = trimToVerse(padded, phonemes, got);
+      const expected = phonemes.expected(recited);
+      const reviewed = reviewWithOpening(basmalaBefore(phonemes, recited[0]), expected, heard.phonemes, heard.durationMs);
+      // Where a slip is another verse's wording, say which — see `source.ts`.
+      const next = {
+        ...reviewed,
+        candidates: reviewed.candidates.map(c => ({
+          ...c, source: sourceOfCandidate(phonemes, c, heard.phonemes, recited),
+        })),
+      };
 
       setAt(null);
       setReview(next);
@@ -332,6 +368,7 @@ export function useAsrReview(
   const cancel = useCallback(() => {
     asrEngine().cancel();
     setProgress(null);
+    setConsentBytes(null);
     setPhase('idle');
   }, []);
 
@@ -359,6 +396,7 @@ export function useAsrReview(
     phase, progress, review, canPlay, play,
     canFollow: !!asrEngine().partial,
     at,
-    start, stop, cancel, say, sayRestFine, clear,
+    consentBytes,
+    start, agree: begin, stop, cancel, say, sayRestFine, clear,
   };
 }

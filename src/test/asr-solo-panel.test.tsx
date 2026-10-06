@@ -27,6 +27,10 @@ vi.mock('@/lib/asr/phonemes', async () => {
   return { ...actual, loadQuranPhonemes: async () => actual.phonemesFromFile(file) };
 });
 
+/** Where a slip's wording came from — real search elsewhere; set per test here. */
+const source = vi.hoisted(() => ({ next: null as null | { surah: number; ayah: number; word: number | null; score: number } }));
+vi.mock('@/lib/asr/source', () => ({ sourceOfCandidate: () => source.next }));
+
 /** Only what the panel touches. */
 const index = {
   locOf: (id: number) => (id >= 1 && id <= 7 ? { surah: 1, ayah: id } : undefined),
@@ -83,7 +87,11 @@ const mount = (onAccept = vi.fn()) => ({
   ),
 });
 
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); });
+beforeEach(() => {
+  resetQuranPhonemesCache(); setAsrEngine(nullEngine()); source.next = null;
+  // Read once already; the explainer has its own tests below.
+  localStorage.setItem('sard:asr-intro-v1', '1');
+});
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); });
 
 describe('where the recogniser cannot run', () => {
@@ -152,6 +160,17 @@ describe('one solo recitation', () => {
     expect(detail).toContain('من التسجيل');
   });
 
+  /** A slip into another verse's wording: the note names both places. */
+  it('carries the verse the wording came from into the note', async () => {
+    source.next = { surah: 7, ayah: 161, word: 0, score: 0.95 };
+    const { container, onAccept } = await record(3);
+    await waitFor(() => expect(container.querySelector('[data-asr-source]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-accept]')!);
+    const [, detail] = onAccept.mock.calls[0];
+    expect(detail).toContain('من التسجيل');
+    expect(detail).toContain('الأعراف 161');
+  });
+
   it('records nothing when the reciter says no', async () => {
     const { container, onAccept } = await record(3);
     await waitFor(() => expect(container.querySelector('[data-asr-dismiss]')).toBeTruthy());
@@ -175,5 +194,87 @@ describe('one solo recitation', () => {
     await waitFor(() => expect(container.querySelector('[data-asr-clean]')).toBeTruthy());
     expect(container.querySelector('[data-asr-candidate]')).toBeNull();
     expect(onAccept).not.toHaveBeenCalled();
+  });
+});
+
+describe('the first time, before a 70 MB download', () => {
+  it('says the size and that it is not a teacher, and fetches only on «yes»', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), prepare, async needsDownload() { return 72_705_392; } });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+
+    await waitFor(() => expect(container.querySelector('[data-asr-consent]')).toBeTruthy());
+    const consent = container.querySelector('[data-asr-consent]')!.textContent!;
+    expect(consent).toContain('73');          // MB, as the download is announced
+    expect(consent).not.toContain('{mb}');
+    expect(prepare).not.toHaveBeenCalled();
+
+    fireEvent.click(container.querySelector('[data-asr-agree]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(prepare).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes back to the button on «later», having fetched nothing', async () => {
+    const prepare = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), prepare, async needsDownload() { return 72_705_392; } });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-later]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-later]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-consent]')).toBeNull());
+    expect(prepare).not.toHaveBeenCalled();
+  });
+});
+
+describe('the first press', () => {
+  beforeEach(() => localStorage.removeItem('sard:asr-intro-v1'));
+
+  it('explains before it records, and records only on «start»', async () => {
+    const start = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), start });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+
+    const intro = container.querySelector('[data-asr-intro]');
+    expect(intro?.textContent).toContain('لا يُكتب شيءٌ إلا بتأكيدك');
+    expect(intro?.textContent).toContain('لا تحكم على التجويد');
+    expect(start).not.toHaveBeenCalled();
+
+    fireEvent.click(container.querySelector('[data-asr-intro-go]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  it('is shown once: the next press records straight away', async () => {
+    setAsrEngine(engine());
+    const first = mount();
+    await waitFor(() => expect(first.container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(first.container.querySelector('[data-asr-start]')!);
+    fireEvent.click(first.container.querySelector('[data-asr-intro-go]')!);
+    await waitFor(() => expect(first.container.querySelector('[data-asr-stop]')).toBeTruthy());
+    cleanup();
+
+    const again = mount();
+    await waitFor(() => expect(again.container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(again.container.querySelector('[data-asr-start]')!);
+    await waitFor(() => expect(again.container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(again.container.querySelector('[data-asr-intro]')).toBeNull();
+  });
+
+  it('records nothing on «later», and asks again next time', async () => {
+    const start = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), start });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    fireEvent.click(container.querySelector('[data-asr-intro-later]')!);
+    expect(container.querySelector('[data-asr-intro]')).toBeNull();
+    expect(start).not.toHaveBeenCalled();
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    expect(container.querySelector('[data-asr-intro]')).toBeTruthy();
   });
 });

@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import {
   ACCEPTED_KIND, MIN_SOUNDS, acceptedCandidates, answer, candidateDetail, dismissRest,
-  pendingCount, reviewRecitation,
+  pendingCount, reviewRecitation, basmalaBefore, reviewWithOpening,
 } from '@/lib/asr/review';
+import { phonemesFromFile } from '@/lib/asr/phonemes';
 import { MIN_AGREEMENT, type ExpectedPhoneme, type HeardPhoneme } from '@/lib/asr/align';
 import { acceptedOnly } from '@/lib/asr/engine';
 
@@ -121,7 +123,7 @@ describe('what an accepted candidate becomes', () => {
     const said = reviewRecitation(expect_('a b c d e f'), heard_('a b x y e f'), 9000, { minSounds: 0 });
     expect(candidateDetail(said.candidates[0], t as never)).toBe('asrHeard');
 
-    const left = reviewRecitation(expect_('a b c d e f'), heard_('a b e f'), 9000, { minSounds: 0 });
+    const left = reviewRecitation(expect_('a b c d e f g h i'), heard_('a b c g h i'), 9000, { minSounds: 0 });
     expect(candidateDetail(left.candidates[0], t as never)).toBe('asrOmitted');
 
     const added = reviewRecitation(expect_('a b c d'), heard_('a b x y c d'), 9000, { minSounds: 0 });
@@ -158,5 +160,43 @@ describe('a recitation too short to judge', () => {
     const r = reviewRecitation(expect_('a b c'), eight('a b c'), 3000);
     expect(r.enough).toBe(false);
     expect(r.agreement).toBe(1);
+  });
+});
+
+/**
+ * Seen on a human recitation of al-Ikhlāṣ: the basmala said before it — the
+ * sunna — was raised as words added. It is allowed, never required.
+ */
+describe('the basmala before a sūra', () => {
+  const raw = JSON.parse(readFileSync('sard/public/quran-phonemes.json', 'utf8'));
+  const phonemes = phonemesFromFile(raw);
+  const ikhlas = [1, 2, 3, 4].map(ayah => ({ surah: 112, ayah, anchorId: 112000 + ayah }));
+  const expected = phonemes.expected(ikhlas);
+  const opening = basmalaBefore(phonemes, ikhlas[0]);
+  const said = (p: { symbol: string }[]) => p.map((x, i) => ({ symbol: x.symbol, confidence: null, atMs: i * 80 }));
+
+  it('is offered before the first verse of a sūra, but not before al-Fātiḥa, at-Tawba or a later verse', () => {
+    expect(opening.length).toBeGreaterThan(10);
+    expect(basmalaBefore(phonemes, { surah: 1, ayah: 1, anchorId: 1 })).toEqual([]);
+    expect(basmalaBefore(phonemes, { surah: 9, ayah: 1, anchorId: 1236 })).toEqual([]);
+    expect(basmalaBefore(phonemes, { surah: 112, ayah: 2, anchorId: 112002 })).toEqual([]);
+  });
+
+  it('raises nothing when it is said', () => {
+    const r = reviewWithOpening(opening, expected, said([...opening, ...expected]), 9000);
+    expect(r.followed).toBe(true);
+    expect(r.candidates).toEqual([]);
+  });
+
+  it('raises nothing when it is not', () => {
+    const r = reviewWithOpening(opening, expected, said(expected), 9000);
+    expect(r.followed).toBe(true);
+    expect(r.candidates).toEqual([]);
+  });
+
+  it('still raises a slip in the sūra itself', () => {
+    const slipped = expected.filter(p => !(p.anchorId === 112003 && p.word !== null && p.word >= 2));
+    const r = reviewWithOpening(opening, expected, said([...opening, ...slipped]), 9000);
+    expect(r.candidates.map(c => c.anchorId)).toEqual([112003]);
   });
 });

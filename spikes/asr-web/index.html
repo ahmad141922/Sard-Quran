@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تجربة التعرّف في المتصفح</title>
+  <style>
+    :root { color-scheme: light dark; --line: #8884; --soft: #8881; --ok: #1a7f37; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 0 auto; padding: 1rem; line-height: 1.6; }
+    h1 { font-size: 1.3rem; margin: 0.5rem 0; }
+    .note { font-size: 0.9rem; opacity: 0.8; }
+    section { border: 1px solid var(--line); border-radius: 10px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+    section h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+    [disabled] { opacity: 0.45; pointer-events: none; }
+    input[type=file] { max-width: 100%; }
+    button { font: inherit; font-size: 1.05rem; padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); width: 100%; }
+    .status { font-size: 0.9rem; margin-top: 0.4rem; min-height: 1.4em; }
+    .or { text-align: center; margin: 0.5rem 0; opacity: 0.7; }
+    #heard { font-size: 1.3rem; min-height: 3rem; padding: 0.5rem; background: var(--soft); border-radius: 6px; word-spacing: 0.3rem; overflow-wrap: anywhere; }
+    #report { border-color: var(--ok); }
+    #report-body { white-space: pre-wrap; font-size: 0.85rem; margin: 0; overflow-wrap: anywhere; }
+    details { margin-top: 1rem; font-size: 0.8rem; }
+    #log { white-space: pre-wrap; direction: ltr; text-align: left; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>تجربة التعرّف على التلاوة في المتصفح</h1>
+  <p class="note">
+    صفحة تجربة، لا ميزة منشورة. النموذج يعمل على هذا الجهاز ولا يُرفع صوتك إلى أيّ مكان.
+    الجهاز: <span id="threads"></span>
+  </p>
+
+  <section data-step="1">
+    <h2>١. اختر ملف النموذج</h2>
+    <p class="note">ملف <code>zipformer_p_arabic_v3…int8.onnx</code> (نحو ٧٠ م.ب) من ذاكرة الجهاز.</p>
+    <!-- No accept filter: iOS greys out types it does not know, and .onnx is one. -->
+    <input id="model-file" type="file">
+    <div id="model-status" class="status"></div>
+  </section>
+
+  <section data-step="2">
+    <h2>٢. اقرأ أو اختر تسجيلًا</h2>
+    <button id="mic" type="button">🎙 ابدأ التسجيل</button>
+    <div class="or">أو</div>
+    <input id="audio-file" type="file" accept="audio/*">
+    <div id="audio-status" class="status"></div>
+  </section>
+
+  <section>
+    <h2>ما سُمع (أصوات، لا حروف مكتوبة)</h2>
+    <div id="heard">…</div>
+  </section>
+
+  <section id="report" hidden>
+    <h2>النتيجة — خذ لقطة شاشة لهذا المربّع</h2>
+    <pre id="report-body"></pre>
+  </section>
+
+  <details>
+    <summary>تفاصيل تقنية</summary>
+    <pre id="log"></pre>
+  </details>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
