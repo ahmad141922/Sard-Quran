@@ -34,6 +34,16 @@ import type { QuranIndex } from '@/lib/quran-index';
 import { positionLabel } from './recitation-shared';
 import AsrSuggestions from './AsrSuggestions';
 
+
+/** Whether the reciter has read how recording works — per device, a convenience only. */
+const INTRO_KEY = 'sard:asr-intro-v1';
+function introSeen(): boolean {
+  try { return localStorage.getItem(INTRO_KEY) === '1'; } catch { return false; }
+}
+function markIntroSeen(): void {
+  try { localStorage.setItem(INTRO_KEY, '1'); } catch { /* shown again next time; harmless */ }
+}
+
 interface Props {
   index: QuranIndex;
   book: EditionBook;
@@ -71,6 +81,8 @@ export const SoloListenPanel: React.FC<Props> = ({
    * should have chosen, not something they discover happening to them.
    */
   const [followOn, setFollowOn] = useState(false);
+  /** The first-use explainer is open — see `begin`. */
+  const [intro, setIntro] = useState(false);
   const asr = useAsrReview(index, anchorNow, followOn ? onFollow : undefined);
 
   /*
@@ -121,6 +133,21 @@ export const SoloListenPanel: React.FC<Props> = ({
 
   const working = asr.phase === 'preparing' || asr.phase === 'reading';
 
+  /*
+    The first press explains before it records: what to do, what comes back,
+    and that nothing is written without a «yes». Once — the reciter who has
+    read it does not need it between every passage.
+  */
+  const begin = () => {
+    if (introSeen()) asr.start();
+    else setIntro(true);
+  };
+  const introGo = () => {
+    markIntroSeen();
+    setIntro(false);
+    asr.start();
+  };
+
   return (
     <div data-solo-listen className="w-full">
       {/*
@@ -143,8 +170,8 @@ export const SoloListenPanel: React.FC<Props> = ({
           <button
             type="button"
             data-asr-start
-            onClick={asr.start}
-            disabled={disabled || working || asr.phase === 'review' || asr.phase === 'consent'}
+            onClick={begin}
+            disabled={disabled || working || intro || asr.phase === 'review' || asr.phase === 'consent'}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted disabled:opacity-40"
           >
             {working ? <Loader2 size={12} className="animate-spin" /> : <Mic size={12} />}
@@ -175,6 +202,36 @@ export const SoloListenPanel: React.FC<Props> = ({
           </button>
         )}
       </div>
+
+      {intro && asr.phase === 'idle' && (
+        <div data-asr-intro className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-[11px] leading-relaxed">
+          <p className="font-bold text-foreground">{t('asrIntroTitle')}</p>
+          <ol className="mt-1.5 list-decimal space-y-1 ps-4 text-muted-foreground">
+            <li>{t('asrIntroStep1')}</li>
+            <li>{t('asrIntroStep2')}</li>
+            <li>{t('asrIntroStep3')}</li>
+          </ol>
+          <p className="mt-1.5 text-muted-foreground">{t('asrIntroScope')}</p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              data-asr-intro-go
+              onClick={introGo}
+              className="flex-1 rounded-full bg-emerald-600 px-3 py-1.5 font-bold text-white hover:bg-emerald-700"
+            >
+              {t('asrIntroGo')}
+            </button>
+            <button
+              type="button"
+              data-asr-intro-later
+              onClick={() => setIntro(false)}
+              className="flex-1 rounded-full border border-border px-3 py-1.5 font-bold text-muted-foreground hover:bg-muted"
+            >
+              {t('asrConsentLater')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/*
         The download is asked for, never assumed: about 70 MB the first time,

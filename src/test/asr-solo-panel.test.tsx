@@ -87,7 +87,11 @@ const mount = (onAccept = vi.fn()) => ({
   ),
 });
 
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); source.next = null; });
+beforeEach(() => {
+  resetQuranPhonemesCache(); setAsrEngine(nullEngine()); source.next = null;
+  // Read once already; the explainer has its own tests below.
+  localStorage.setItem('sard:asr-intro-v1', '1');
+});
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); });
 
 describe('where the recogniser cannot run', () => {
@@ -222,5 +226,55 @@ describe('the first time, before a 70 MB download', () => {
     fireEvent.click(container.querySelector('[data-asr-later]')!);
     await waitFor(() => expect(container.querySelector('[data-asr-consent]')).toBeNull());
     expect(prepare).not.toHaveBeenCalled();
+  });
+});
+
+describe('the first press', () => {
+  beforeEach(() => localStorage.removeItem('sard:asr-intro-v1'));
+
+  it('explains before it records, and records only on «start»', async () => {
+    const start = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), start });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+
+    const intro = container.querySelector('[data-asr-intro]');
+    expect(intro?.textContent).toContain('لا يُكتب شيءٌ إلا بتأكيدك');
+    expect(intro?.textContent).toContain('لا تحكم على التجويد');
+    expect(start).not.toHaveBeenCalled();
+
+    fireEvent.click(container.querySelector('[data-asr-intro-go]')!);
+    await waitFor(() => expect(container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  it('is shown once: the next press records straight away', async () => {
+    setAsrEngine(engine());
+    const first = mount();
+    await waitFor(() => expect(first.container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(first.container.querySelector('[data-asr-start]')!);
+    fireEvent.click(first.container.querySelector('[data-asr-intro-go]')!);
+    await waitFor(() => expect(first.container.querySelector('[data-asr-stop]')).toBeTruthy());
+    cleanup();
+
+    const again = mount();
+    await waitFor(() => expect(again.container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(again.container.querySelector('[data-asr-start]')!);
+    await waitFor(() => expect(again.container.querySelector('[data-asr-stop]')).toBeTruthy());
+    expect(again.container.querySelector('[data-asr-intro]')).toBeNull();
+  });
+
+  it('records nothing on «later», and asks again next time', async () => {
+    const start = vi.fn(async () => true);
+    setAsrEngine({ ...engine(), start });
+    const { container } = mount();
+    await waitFor(() => expect(container.querySelector('[data-asr-start]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    fireEvent.click(container.querySelector('[data-asr-intro-later]')!);
+    expect(container.querySelector('[data-asr-intro]')).toBeNull();
+    expect(start).not.toHaveBeenCalled();
+    fireEvent.click(container.querySelector('[data-asr-start]')!);
+    expect(container.querySelector('[data-asr-intro]')).toBeTruthy();
   });
 });
