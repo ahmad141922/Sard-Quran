@@ -27,6 +27,10 @@ vi.mock('@/lib/asr/phonemes', async () => {
   return { ...actual, loadQuranPhonemes: async () => actual.phonemesFromFile(file) };
 });
 
+/** Where a slip's wording came from — real search elsewhere; set per test here. */
+const source = vi.hoisted(() => ({ next: null as null | { surah: number; ayah: number; word: number | null; score: number } }));
+vi.mock('@/lib/asr/source', () => ({ sourceOfCandidate: () => source.next }));
+
 /** Only what the panel touches. */
 const index = {
   locOf: (id: number) => (id >= 1 && id <= 7 ? { surah: 1, ayah: id } : undefined),
@@ -83,7 +87,7 @@ const mount = (onAccept = vi.fn()) => ({
   ),
 });
 
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); });
+beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); source.next = null; });
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); });
 
 describe('where the recogniser cannot run', () => {
@@ -150,6 +154,17 @@ describe('one solo recitation', () => {
     const [place, detail] = onAccept.mock.calls[0];
     expect(place.anchor.id).toBe(1);
     expect(detail).toContain('من التسجيل');
+  });
+
+  /** A slip into another verse's wording: the note names both places. */
+  it('carries the verse the wording came from into the note', async () => {
+    source.next = { surah: 7, ayah: 161, word: 0, score: 0.95 };
+    const { container, onAccept } = await record(3);
+    await waitFor(() => expect(container.querySelector('[data-asr-source]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-asr-accept]')!);
+    const [, detail] = onAccept.mock.calls[0];
+    expect(detail).toContain('من التسجيل');
+    expect(detail).toContain('الأعراف 161');
   });
 
   it('records nothing when the reciter says no', async () => {

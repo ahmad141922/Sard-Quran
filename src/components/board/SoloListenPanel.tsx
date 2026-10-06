@@ -26,6 +26,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { useAsrReview } from '@/lib/asr/use-asr';
 import type { At } from '@/lib/asr/follow';
 import { candidateDetail } from '@/lib/asr/review';
+import { surahName } from '@/lib/quran-data';
 import type { ReviewedCandidate } from '@/lib/asr/engine';
 import { positionFromAnchor, type AyahPosition } from '@/lib/mushaf/position';
 import type { CanonicalBook, EditionBook } from '@/lib/mushaf/position';
@@ -108,7 +109,14 @@ export const SoloListenPanel: React.FC<Props> = ({
     asr.say(candidate.id, 'accepted');
     // A candidate whose place cannot be expressed in this book is answered and
     // dropped rather than pinned to a guessed verse.
-    if (position) onAccept(position, candidateDetail(candidate, t));
+    if (!position) return;
+    // The verse whose wording was said here travels into the note, so the
+    // report — and the revision after it — names both places.
+    const src = candidate.source;
+    const detail = src
+      ? `${candidateDetail(candidate, t)} — ${t('asrSourceNote')} ${surahName(src.surah)} ${src.ayah}`
+      : candidateDetail(candidate, t);
+    onAccept(position, detail);
   };
 
   const working = asr.phase === 'preparing' || asr.phase === 'reading';
