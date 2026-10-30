@@ -18,6 +18,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- The way back from Google sign-in: the system browser hands
+                 com.tajweedoo.sard://auth#… to the app (see auth-return.ts). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.tajweedoo.sard" android:host="auth" />
+            </intent-filter>
         </activity>
 
         <provider
