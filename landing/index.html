@@ -137,7 +137,6 @@
       </span>
     </a>
     <nav class="header-nav">
-      <a href="#event" data-en="The day">المناسبة</a>
       <a class="nav-new" href="#download" data-en="The app">التطبيق</a>
       <a href="#riwayat" data-en="Riwayat">الروايات</a>
       <a href="#how" data-en="How it works">كيف تعمل</a>
@@ -162,11 +161,6 @@
   <div class="wrap hero-grid">
 
     <div class="hero-copy">
-      <p class="eyebrow">
-        <img src="assets/sard-day.webp" alt="" width="22" height="22" loading="lazy">
-        <span data-en="On World Quran Recitation Day">بمناسبة اليوم العالمي للسرد القرآني</span>
-      </p>
-
       <h1 data-en="A tool that keeps a Quran recitation session present, and free of fussing over details.">أداة تجعل مجلس السرد للقرآن أكثر حضورًا، وأقل انشغالًا بالتفاصيل.</h1>
 
       <p class="lede" data-en="The mushaf page exactly as it is in the edition you memorised from, and three taps to record what passed during the recitation. Not another digital Quran page — a tool built for recitation and review alone.">
@@ -226,65 +220,6 @@
       </div>
     </div>
 
-  </div>
-</section>
-
-<!--
-  ── المناسبة ───────────────────────────────────────────────────────
-  ثاني ما يُرى بعد الهيرو عمدًا: أكثر من يفتح الصفحة هذه الأيام جاء من أجل
-  المناسبة، فتأجيلها إلى ما بعد ستّ شاشات كان يدفنها. ولها لوحها الداكن
-  وحدها — لا نقش خافت — لأنها الشيء الوحيد في الصفحة الذي ينتهي بتاريخ.
--->
-<section class="event" id="event">
-  <!-- نجمة ثمانية مكرَّرة، خافتةً جدًّا: هي زخرفة الشهادة نفسها، فاللوحان
-       يُقرآن من عائلة واحدة. ولأنها أصلًا ملفّ الأركان لا صورة جديدة. -->
-  <div class="event-pattern" aria-hidden="true"></div>
-
-  <div class="wrap event-inner">
-    <div class="event-marks">
-      <img class="event-emblem" src="assets/sard-day.webp"
-           alt="شعار اليوم العالمي للسرد القرآني" data-en-alt="World Quran Recitation Day logo" width="240" height="240" loading="lazy">
-    </div>
-
-    <div class="event-copy">
-      <p class="event-date">
-        <span data-en="30 August 2026">٣٠ أغسطس ٢٠٢٦</span>
-        <span class="event-hijri" data-en="17 Rabi' al-Awwal 1448 AH">١٧ ربيع الأول ١٤٤٨هـ</span>
-      </p>
-
-      <h2 data-en="World Quran Recitation Day">اليوم العالمي للسرد القرآني</h2>
-
-      <img class="event-rule" src="assets/cert-band.svg" alt="" loading="lazy">
-
-      <!-- لا data-en على الفقرة نفسها: طبقة الترجمة تكتب textContent فتمحو
-           ما بداخل العنصر. فالوسم على الأبناء وحدهم — وبه يبقى «مجانًا»
-           ذهبيًّا في العربية، وتكتمل الجملة في الإنجليزية. -->
-      <p>
-        <span data-en="Tajweedoo's Quran Recitation Tool is available">أداة السرد القرآني من تجويدوو متاحة</span>
-        <strong data-en="free">مجانًا</strong>
-        <span data-en="for everyone — a more focused, better ordered way to review the Book of Allah.">للجميع، لتجربة أكثر تركيزًا وتنظيمًا في مراجعة كتاب الله.</span>
-      </p>
-
-      <ul class="event-facts">
-        <li data-en="Completely free">مجانية بالكامل</li>
-        <li data-en="No account, no card">بلا حساب ولا بطاقة</li>
-      </ul>
-
-      <!--
-        العدّاد لوحٌ قائم بذاته إلى جانب الزرّ، لا رقمٌ سائبٌ فوقه: الرقم
-        يُقرأ من بعيد، وكلمته تحته لا بجانبه فلا يلتصق «١٠» بـ«أيام».
-        وقد يعود بلا رقم (يوم واحد · يومان · اليوم نفسه)، فالرقم الفارغ
-        يُطوى بـ`:empty` ويبقى اللوح على كلمته وحدها.
-      -->
-      <div class="event-actions">
-        <div class="event-countdown" id="event-countdown" hidden>
-          <span class="cd-num" id="cd-num"></span>
-          <span class="cd-label" id="cd-label"></span>
-        </div>
-
-        <a class="btn btn-gold btn-lg" data-cta href="#" data-en="Try the Quran Recitation Tool free">جرّب أداة السرد القرآني مجانًا</a>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -1171,104 +1106,6 @@
   }
 
   /* ───────────────────────────────────────────────────────────────
-     ٢) العدّاد — رقم كبير وكلمة. ينتهي بانتهاء يوم ٣٠ أغسطس،
-        ويختفي بعده من تلقاء نفسه بدل أن يعرض رقمًا سالبًا.
-     ─────────────────────────────────────────────────────────────── */
-  const EVENT_END = new Date('2026-08-30T23:59:59+03:00');
-  const DAY_START = new Date('2026-08-30T00:00:00+03:00');
-
-  const arabicDigits = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-
-  /** الرقم وكلمته منفصلان: الرقم يُعرض كبيرًا وحده. */
-  function remaining(now) {
-    if (now > EVENT_END) return null;
-    const ar = document.documentElement.lang !== 'en';
-    if (now >= DAY_START) {
-      return ar
-        ? { num: '', label: 'اليوم هو اليوم العالمي للسرد القرآني' }
-        : { num: '', label: 'Today is World Quran Recitation Day' };
-    }
-    const days = Math.ceil((DAY_START - now) / 86400000);
-    // العربية تفرد وتثنّي وتجمع: ثلاث صيغ لا صيغة. والإنجليزية صيغتان.
-    if (!ar) {
-      return days === 1
-        ? { num: '', label: 'One day to World Quran Recitation Day' }
-        : { num: String(days), value: days, label: 'days to World Quran Recitation Day' };
-    }
-    if (days === 1) return { num: '', label: 'بقي يوم واحد على اليوم العالمي للسرد القرآني' };
-    if (days === 2) return { num: '', label: 'بقي يومان على اليوم العالمي للسرد القرآني' };
-    return {
-      num: arabicDigits(days),
-      value: days,
-      label: (days <= 10 ? 'أيام' : 'يومًا') + ' على اليوم العالمي للسرد القرآني',
-    };
-  }
-
-  /** ينفّذ مرّة واحدة حين يبلغ العنصر خطّ الظهور: بمراقبٍ، وبالتمرير
-      احتياطًا — فالقفزة السريعة قد تتخطّى التقاطع فلا يُرصد. */
-  function whenSeen(el, run) {
-    let fired = false, io = null;
-    const onScroll = () => {
-      if (fired || el.getBoundingClientRect().top >= innerHeight * 0.92) return;
-      fired = true;
-      removeEventListener('scroll', onScroll);
-      if (io) io.disconnect();
-      run();
-    };
-    if ('IntersectionObserver' in window) {
-      io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) onScroll(); },
-                                    { threshold: .35 });
-      io.observe(el);
-    }
-    addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
-
-  /* الرقم يعدّ صعودًا حتى يستقرّ على المتبقّي: يبدأ العدّ حين يُرى اللوح
-     لا حين تُفتح الصفحة، وإلّا انتهى قبل أن ينزل القارئ إليه. وتباطؤٌ في
-     آخره فيستقرّ الرقم ولا يقف فجأة. */
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let counted = false;
-
-  function countUp(el, target, format) {
-    const DURATION = 1100;
-    let started = null;
-    const frame = (now) => {
-      if (started === null) started = now;
-      const k = Math.min(1, (now - started) / DURATION);
-      el.textContent = format(Math.round((1 - Math.pow(1 - k, 3)) * target));
-      if (k < 1) requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
-  }
-
-  function tickCountdown() {
-    const box = document.getElementById('event-countdown');
-    if (!box) return;
-    const left = remaining(new Date());
-    if (!left) { box.hidden = true; return; }
-
-    const numEl = document.getElementById('cd-num');
-    document.getElementById('cd-label').textContent = left.label;
-    box.hidden = false;
-
-    const format = document.documentElement.lang === 'en' ? String : arabicDigits;
-
-    // بلا رقم (يوم · يومان · اليوم نفسه)، أو بعد أن عُدّ مرّة، أو لمن طلب
-    // تقليل الحركة: يُكتب الرقم كما هو بلا عدّ.
-    if (!left.value || counted || REDUCED) {
-      numEl.textContent = left.num;
-    } else {
-      numEl.textContent = format(0);
-      whenSeen(box, () => { counted = true; countUp(numEl, left.value, format); });
-    }
-
-    setTimeout(tickCountdown, 60 * 60 * 1000);
-  }
-  tickCountdown();
-  addEventListener('sard:lang', tickCountdown);
-
-  /* ───────────────────────────────────────────────────────────────
      ٣) الوضع الفاتح/الداكن — الاختيار يُحفظ، وأوّل قيمة وضعها سكربت
         الترويسة قبل أوّل رسم.
      ─────────────────────────────────────────────────────────────── */
@@ -1345,7 +1182,7 @@
      ─────────────────────────────────────────────────────────────── */
   (function reveal() {
     const SELECTOR = '.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, ' +
-                     '.why-list li, .event-inner, ' +
+                     '.why-list li, ' +
                      '.download-copy, .download-visual, .final-cta .wrap, ' +
                      'details, .why-close';
     const items = document.querySelectorAll(SELECTOR);
@@ -1428,7 +1265,7 @@
 
       const label = document.getElementById('lang-label');
       if (label) label.textContent = lang === 'en' ? 'العربية' : 'English';
-      // Whatever draws its own text — the countdown, the theme button — redraws.
+      // Whatever draws its own text — the theme button — redraws.
       dispatchEvent(new Event('sard:lang'));
     }
 

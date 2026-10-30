@@ -1088,141 +1088,6 @@ a { color: inherit; }
 .why-list strong { font-size: 17px; color: var(--ink); line-height: 1.5; }
 .why-list span { font-size: var(--t-sm); line-height: 1.8; color: var(--ink-soft); }
 
-/* ═══ ١٥) المناسبة — لوح داكن وحده ════════════════════════════════
-   ليست قسمًا كبقيّة الأقسام: هي المناسبة التي جاء منها أكثر الزوّار،
-   ولها تاريخ ينتهي. ولأنها داكنة أصلًا فهي لا تتغيّر بالوضعين. */
-
-.event {
-  position: relative; overflow: hidden;
-  padding: var(--s14) 0 var(--s16);
-  color: #f3eee3;
-  background:
-    radial-gradient(115% 85% at 82% 12%, rgba(20, 112, 93, .55) 0%, transparent 58%),
-    radial-gradient(85% 75% at 8% 92%, rgba(179, 120, 31, .26) 0%, transparent 55%),
-    linear-gradient(158deg, #0b473b 0%, #0d5245 42%, #072a23 100%);
-  border-block: 1px solid rgba(201, 134, 47, .4);
-}
-.event::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(58% 42% at 50% 0%, rgba(255, 255, 255, .07), transparent 72%);
-}
-
-/* نجمة ثمانية مكرَّرةً وخافتةً جدًّا، وتخفت عند الحافّتين فلا يبدو النقش
-   مقطوعًا. كانت تستعير `assets/cert-corner.svg`؛ فلمّا استُبدلت لوحة
-   الشهادة بصورة جاهزة حُذف ذلك الملفّ وبقيت هذه القاعدة تطلبه — ٤٠٤
-   صامت لأن النقش زينة لا يُفتقد. فرُسمت هنا مضمَّنةً: لا ملفّ يُفقد ولا
-   طلب يُخفق. */
-.event-pattern {
-  position: absolute; inset: 0; pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 84 84%27%3E%3Cg fill=%27none%27 stroke=%27%23f3eee3%27 stroke-width=%272.4%27%3E%3Crect x=%2725%27 y=%2725%27 width=%2734%27 height=%2734%27/%3E%3Crect x=%2725%27 y=%2725%27 width=%2734%27 height=%2734%27 transform=%27rotate(45 42 42)%27/%3E%3C/g%3E%3C/svg%3E") 0 0 / 84px 84px repeat;
-  opacity: .04;
-  -webkit-mask-image: radial-gradient(80% 70% at 50% 50%, #000 30%, transparent 78%);
-          mask-image: radial-gradient(80% 70% at 50% 50%, #000 30%, transparent 78%);
-}
-
-.event > .wrap { position: relative; z-index: 1; }
-
-@media (min-width: 940px) { .event { padding: var(--s20) 0; } }
-
-.event-inner { display: grid; gap: var(--s8); align-items: center; justify-items: center; }
-/* الشعار أوّلًا في الترتيب لأنه أوّل ما يُعرَّف على الجوّال، أمّا على الشاشة
-   الواسعة فيُزاح إلى الطرف الآخر: العنوان حينئذ يبدأ من حافّة القراءة كبقيّة
-   عناوين الصفحة، والشعار يملأ الفراغ الذي كان تحته. */
-@media (min-width: 900px) {
-  .event-inner { grid-template-columns: 1fr auto; gap: var(--s14); justify-items: start; }
-  .event-copy  { order: 1; }
-  .event-marks { order: 2; }
-}
-
-.event-marks { display: flex; align-items: center; justify-content: center; }
-.event-emblem {
-  width: min(240px, 52vw);
-  filter: drop-shadow(0 14px 34px rgba(0, 0, 0, .4));
-}
-
-.event-copy { text-align: center; }
-@media (min-width: 900px) { .event-copy { text-align: start; } }
-
-/* التاريخان معًا: الميلاديّ يعرفه الجميع والهجريّ هو تاريخ المناسبة */
-.event-copy .event-date {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3);
-  justify-content: center;
-  margin: 0 0 var(--s3); font-size: var(--t-xs); font-weight: 700;
-  color: var(--gold-200);
-}
-@media (min-width: 900px) { .event-copy .event-date { justify-content: flex-start; } }
-.event-hijri {
-  font-weight: 500; color: rgba(243, 238, 227, .6);
-  padding-inline-start: var(--s3);
-  border-inline-start: 1px solid rgba(240, 194, 115, .35);
-}
-
-/* شريط المعيَّنات نفسه الذي يفصل في الشهادة */
-.event-rule {
-  width: 172px; height: 12px; margin: var(--s4) auto var(--s5);
-  opacity: .75;
-}
-@media (min-width: 900px) { .event-rule { margin-inline: 0; } }
-.event-copy h2 { font-size: var(--t-h2); margin-bottom: var(--s4); color: #fff; }
-.event-copy p { color: rgba(243, 238, 227, .82); max-width: 52ch; margin-inline: auto; }
-@media (min-width: 900px) { .event-copy p { margin-inline: 0; } }
-.event-copy strong { color: var(--gold-200); }
-
-.event-facts {
-  display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center;
-  list-style: none; padding: 0; margin: 0 0 6px;
-}
-@media (min-width: 900px) { .event-facts { justify-content: flex-start; } }
-.event-facts li {
-  font-size: var(--t-xs); font-weight: 600; color: #f3eee3;
-  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: var(--r-pill); padding: 5px var(--s4);
-}
-
-/* الزرّ والعدّاد في صفّ واحد: كانا فوق بعضهما فبدا الرقم سائبًا */
-.event-actions {
-  display: flex; flex-wrap: wrap; align-items: stretch;
-  justify-content: center; gap: var(--s4);
-  margin-top: var(--s7);
-}
-@media (min-width: 900px) { .event-actions { justify-content: flex-start; } }
-
-/* العدّاد لوحٌ لا سطر: الرقم كبير وكلمته تحته — وبجانبه كان «١٠» يلتصق
-   بـ«أيام» فيُقرآن كلمةً واحدة. */
-.event-countdown {
-  display: flex; align-items: center; gap: var(--s4);
-  padding: var(--s3) var(--s6);
-  border: 1px solid rgba(240, 194, 115, .4);
-  border-radius: var(--r-lg);
-  background: rgba(0, 0, 0, .24);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-}
-.cd-num {
-  font-size: clamp(34px, 5.4vw, 48px); font-weight: 700; line-height: 1;
-  color: var(--gold-200); text-shadow: 0 6px 18px rgba(0, 0, 0, .35);
-  font-variant-numeric: tabular-nums;
-}
-/* قد يعود العدّاد بلا رقم: «بقي يوم واحد» و«يومان» و«اليوم هو اليوم».
-   فالرقم الفارغ يُطوى ولا يترك فجوةً إلى جانب كلمته. */
-.cd-num:empty { display: none; }
-.cd-label {
-  font-size: var(--t-xs); font-weight: 600; line-height: 1.5;
-  color: rgba(243, 238, 227, .88);
-  max-width: 14ch; text-align: start;
-}
-
-/* الزرّ على اللوح الداكن ذهبيّ بنصّ داكن: الأخضر يذوب في الأرضية،
-   والأبيض يجعله لوحًا ثالثًا. */
-.btn-gold { background: var(--gold-300); color: #2a1c05; box-shadow: 0 10px 24px rgba(0, 0, 0, .3); }
-.btn-gold:hover { background: var(--gold-200); color: #2a1c05; transform: translateY(-1px); }
-.btn-gold:active { transform: translateY(0) scale(.985); }
-
-.event-copy .fineprint {
-  text-align: center; margin-top: var(--s6); max-width: 52ch;
-  color: rgba(243, 238, 227, .55);
-}
-@media (min-width: 900px) { .event-copy .fineprint { text-align: start; } }
-
 /* ═══ ١٦) الأسئلة ═════════════════════════════════════════════════ */
 
 details {
@@ -1538,7 +1403,7 @@ details p { color: var(--ink-soft); font-size: var(--t-sm); margin: 0 0 var(--s4
 /* الظهور بالتمرير — القائمة نفسها مكتوبة في سكربت الصفحة. وهي تحت
    `.js` وحدها: بلا جافاسكربت لا يُخفى شيء أصلًا، فلا تصير الصفحة
    بيضاء لمن عطّله. */
-.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li, .event-inner,
+.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li,
         .download-copy, .download-visual, .about, .final-cta .wrap,
         details, .why-close) {
   opacity: 0;
@@ -1546,7 +1411,7 @@ details p { color: var(--ink-soft); font-size: var(--t-sm); margin: 0 0 var(--s4
   transition: opacity var(--dur-3) var(--ease),
               transform var(--dur-3) var(--ease-out);
 }
-.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li, .event-inner,
+.js :is(.card, .showcase-copy, .showcase-visual, .riwaya, .steps li, .why-list li,
         .download-copy, .download-visual, .about, .final-cta .wrap,
         details, .why-close).in {
   opacity: 1;

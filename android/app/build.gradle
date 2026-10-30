@@ -30,8 +30,14 @@ android {
         }
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        /*
+         * Play refuses an upload whose versionCode it has already seen, so it
+         * only ever goes up. Raise the default here with each release, or pass
+         * it at build time without editing anything:
+         *   gradlew bundleRelease -PsardVersionCode=5 -PsardVersionName=1.3
+         */
+        versionCode((project.findProperty('sardVersionCode') ?: '2') as Integer)
+        versionName((project.findProperty('sardVersionName') ?: '1.1') as String)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
