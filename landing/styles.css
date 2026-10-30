@@ -1163,6 +1163,8 @@ details p { color: var(--ink-soft); font-size: var(--t-sm); margin: 0 0 var(--s4
 }
 .footer-logo { display: block; width: fit-content; }
 .footer-logo img { width: 150px; height: auto; }
+/* اسم تجويدوو في الشعار أسود: في الوضع الداكن يقف على رقعة فاتحة لئلّا يغيب */
+[data-theme='dark'] .footer-logo img { background: #fff; padding: 8px 12px; border-radius: 10px; box-sizing: content-box; }
 .footer-about { margin: 0; font-size: var(--t-sm); line-height: 1.75; color: var(--ink-soft); max-width: 42ch; }
 .footer-maker .btn { margin-top: var(--s1); }
 
