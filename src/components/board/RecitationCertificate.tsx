@@ -56,7 +56,7 @@ const FACE = "'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif";
  * فارفع الرقم كلّما تغيّرت الصورة. و`scripts/build-deploy.mjs` يقصّر عمر
  * `/app/cert/*` كذلك، فمن نسي الرقم لا ينتظر أسبوعًا.
  */
-const SHEET = withBase('cert/template.webp?v=2');
+const SHEET = withBase('cert/template.webp?v=3');
 const SHEET_RATIO = 1055 / 1491;
 
 /** أرقام عربية في كل الوثيقة: التاريخ يكتبها هكذا، فالمدّة لا تُكتب لاتينية بجانبه. */
