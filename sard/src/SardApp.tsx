@@ -21,7 +21,8 @@ import {
   saveSession, setActiveSessionId,
 } from '@/lib/recitation-store';
 import { RecitationReportSheet, sheetToPng } from '@/components/board/RecitationReportSheet';
-import { onHardwareBack, saveImage } from '@/lib/native';
+import { isNative, onHardwareBack, saveImage } from '@/lib/native';
+import { arrivalFrom, NATIVE_CALLBACK, takeReturning } from '@/lib/auth-return';
 import { layerToClose, type SardLayer } from './back-stack';
 import SardSplash from './SardSplash';
 import SardWizard from './SardWizard';
@@ -71,7 +72,55 @@ const SardApp: React.FC = () => {
    * the home screen behind it has already settled.
    */
   const [splash, setSplash] = useState(true);
-  const [teacherOpen, setTeacherOpen] = useState(false);
+  /** The account screen, and what a link asked it to open on. */
+  const [teacherOpen, setTeacherOpen] = useState<null | {
+    initialPhase?: 'join' | 'new-password';
+    initialJoinCode?: string;
+    notice?: string;
+  }>(null);
+  /*
+   * A link from outside — an invitation, the way back from Google, a link in
+   * an email — opens the account screen on what it was for. Asked once, at
+   * boot: the fragment is the link's, and the Supabase client (loaded with the
+   * screen) still needs to read the session out of it, so it is left for that.
+   */
+  useEffect(() => {
+    const arrival = arrivalFrom(window.location.hash, takeReturning());
+    if (!arrival) return;
+    const clear = () => window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (arrival.kind === 'join') {
+      clear();
+      setTeacherOpen({ initialPhase: 'join', initialJoinCode: arrival.code });
+    } else if (arrival.kind === 'expired') {
+      clear();
+      setTeacherOpen({ notice: teacherText(lang).linkExpired });
+    } else if (arrival.kind === 'recovery') {
+      setTeacherOpen({ initialPhase: 'new-password' });
+    } else {
+      setTeacherOpen({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, for the link the tool opened with
+  }, []);
+  /*
+   * In the app, Google returns through the system browser to a link of the
+   * app's own; the session is taken out of it, and the account screen opens.
+   */
+  useEffect(() => {
+    if (!isNative()) return;
+    let remove: (() => void) | undefined;
+    void (async () => {
+      const { App } = await import('@capacitor/app');
+      const take = async (url: string | undefined) => {
+        if (!url?.startsWith(NATIVE_CALLBACK)) return;
+        const { handleAuthCallback } = await import('@/lib/teacher-auth');
+        if (await handleAuthCallback(url)) setTeacherOpen({});
+      };
+      const handle = await App.addListener('appUrlOpen', ({ url }) => { void take(url); });
+      remove = () => { void handle.remove(); };
+      void take((await App.getLaunchUrl())?.url);
+    })();
+    return () => remove?.();
+  }, []);
   const [consentOpen, setConsentOpen] = useState(false);
   const splashDone = useCallback(() => setSplash(false), []);
   // Dates read in the language on screen; Egypt is the tool's home locale, and
@@ -402,8 +451,9 @@ const SardApp: React.FC = () => {
       {teacherOpen && (
         <Suspense fallback={null}>
           <TeacherScreen
-            onClose={() => setTeacherOpen(false)}
-            onAskConsent={() => { setTeacherOpen(false); setConsentOpen(true); }}
+            {...teacherOpen}
+            onClose={() => setTeacherOpen(null)}
+            onAskConsent={() => { setTeacherOpen(null); setConsentOpen(true); }}
           />
         </Suspense>
       )}
@@ -559,7 +609,7 @@ const SardApp: React.FC = () => {
           people came for reads as a wall.
         */}
         <button
-          onClick={() => setTeacherOpen(true)}
+          onClick={() => setTeacherOpen({})}
           data-teacher-open
           className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/25 bg-transparent py-3 text-sm font-bold text-foreground transition-all hover:border-primary/60 hover:bg-primary/[0.04] active:scale-[0.99]"
         >

@@ -17,13 +17,14 @@ import { render, cleanup, fireEvent, waitFor } from '@testing-library/react';
 
 const state = {
   signedIn: null as string | null,
+  signUpAs: 'confirm' as 'confirm' | 'signed-in' | 'exists',
   students: [] as { id: string; name: string; joinCode: null; joinExpiresAt: null; joined: boolean }[],
-  confirmOk: true,
+  passwordOk: true,
   joinOk: true,
   anonymous: false,
 };
 const calls = {
-  requested: 0, confirmed: 0, ensured: 0,
+  signedInWith: 0, signedUp: 0, resets: 0, google: 0, ensured: 0,
   issued: [] as string[], archived: [] as string[], joined: [] as string[],
 };
 
@@ -32,13 +33,20 @@ vi.mock('@/lib/teacher-auth', () => ({
   currentUserId: async () => state.signedIn,
   currentIdentity: async () =>
     (state.signedIn ? { id: state.signedIn, anonymous: state.anonymous } : null),
-  requestSignInCode: async () => { calls.requested++; return { ok: true, value: undefined }; },
-  confirmSignInCode: async () => {
-    calls.confirmed++;
-    if (!state.confirmOk) return { ok: false, reason: 'rejected' };
+  MIN_PASSWORD: 8,
+  joinLink: (code: string) => `https://sard.tajweedoo.com/app/#/join/${code}`,
+  signInWithGoogle: async () => { calls.google++; return { ok: true, value: undefined }; },
+  signInWithPassword: async () => {
+    calls.signedInWith++;
+    if (!state.passwordOk) return { ok: false, reason: 'wrong-password' };
     state.signedIn = 'teacher-1';
     return { ok: true, value: undefined };
   },
+  signUpWithPassword: async () => { calls.signedUp++; return { ok: true, value: state.signUpAs }; },
+  resendConfirmation: async () => ({ ok: true, value: undefined }),
+  sendPasswordReset: async () => { calls.resets++; return { ok: true, value: undefined }; },
+  setNewPassword: async () => ({ ok: true, value: undefined }),
+  ensureTeacherRow: async () => { calls.ensured++; },
   ensureTeacher: async () => { calls.ensured++; return { ok: true, value: { id: 't', name: '' } }; },
   signOut: async () => { state.signedIn = null; },
   joinRoster: async (code: string) => {
@@ -95,45 +103,105 @@ const student = (id: string, name: string) =>
 beforeEach(() => {
   state.signedIn = null;
   state.students = [];
-  state.confirmOk = true;
+  state.passwordOk = true;
+  state.signUpAs = 'confirm';
   state.joinOk = true;
   state.anonymous = false;
   localStorage.clear();
-  calls.requested = 0; calls.confirmed = 0; calls.ensured = 0;
+  calls.signedInWith = 0; calls.signedUp = 0; calls.resets = 0; calls.google = 0; calls.ensured = 0;
   calls.issued = []; calls.archived = []; calls.joined = [];
 });
 afterEach(cleanup);
 
 describe('arriving signed out', () => {
-  it('asks for an email first', () => {
+  const type = (container: HTMLElement, sel: string, value: string) =>
+    fireEvent.change(container.querySelector(sel)!, { target: { value } });
+
+  it('offers Google and an email with a password — and no emailed code', () => {
     const { container } = draw();
+    expect(container.querySelector('[data-teacher-google]')).toBeTruthy();
     expect(container.querySelector('[data-teacher-email]')).toBeTruthy();
+    expect(container.querySelector('[data-teacher-password]')).toBeTruthy();
     expect(container.querySelector('[data-teacher-code]')).toBeNull();
   });
 
-  it('asks for the emailed code once one is sent', async () => {
+  /** A form with no word of why it wants a password reads as a trap. */
+  it('says the account is optional, and what will arrive in the inbox', () => {
     const { container } = draw();
-    fireEvent.change(container.querySelector('[data-teacher-email]')!, {
-      target: { value: 'a@b.com' },
-    });
-    fireEvent.click(container.querySelector('[data-teacher-send]')!);
-    await waitFor(() => expect(container.querySelector('[data-teacher-code]')).toBeTruthy());
-    expect(calls.requested).toBe(1);
+    expect(container.textContent).toContain(t.signInWhy);
+    expect(container.textContent).toContain(t.privacyNote);
   });
 
-  /** A refused code must not look like a signed-in teacher with no students. */
-  it('says so when the code is refused, and stays put', async () => {
-    state.confirmOk = false;
+  it('signs in with a password and goes to the participants', async () => {
     const { container } = draw();
-    fireEvent.change(container.querySelector('[data-teacher-email]')!, {
-      target: { value: 'a@b.com' },
-    });
-    fireEvent.click(container.querySelector('[data-teacher-send]')!);
-    await waitFor(() => expect(container.querySelector('[data-teacher-code]')).toBeTruthy());
-    fireEvent.click(container.querySelector('[data-teacher-confirm]')!);
+    type(container, '[data-teacher-email]', 'a@b.com');
+    type(container, '[data-teacher-password]', 'long enough');
+    fireEvent.click(container.querySelector('[data-teacher-signin]')!);
+    await waitFor(() => expect(container.querySelector('[data-teacher-add]')).toBeTruthy());
+    expect(calls.signedInWith).toBe(1);
+    expect(calls.ensured).toBeGreaterThan(0);
+  });
+
+  /**
+   * An account from the days of emailed codes has no password. Refusing it
+   * must point at setting one, not at making a second account.
+   */
+  it('points a refused password at «forgot your password», and stays put', async () => {
+    state.passwordOk = false;
+    const { container } = draw();
+    type(container, '[data-teacher-email]', 'a@b.com');
+    type(container, '[data-teacher-password]', 'whatever1');
+    fireEvent.click(container.querySelector('[data-teacher-signin]')!);
     await waitFor(() => expect(container.querySelector('[data-teacher-problem]')).toBeTruthy());
-    expect(container.querySelector('[data-teacher-code]')).toBeTruthy();
+    expect(container.querySelector('[data-teacher-problem]')!.textContent).toBe(t.wrongPassword);
     expect(container.querySelector('[data-teacher-add]')).toBeNull();
+  });
+
+  it('asks a new account to confirm its email before anything else', async () => {
+    const { container } = draw();
+    fireEvent.click(container.querySelector('[data-teacher-tosignup]')!);
+    type(container, '[data-teacher-name]', TEACHER_NAME);
+    type(container, '[data-teacher-email]', 'a@b.com');
+    type(container, '[data-teacher-password]', 'long enough');
+    fireEvent.click(container.querySelector('[data-teacher-signup]')!);
+    await waitFor(() => expect(container.querySelector('[data-teacher-inbox]')).toBeTruthy());
+    expect(container.querySelector('[data-teacher-inbox]')!.textContent).toContain('a@b.com');
+    expect(container.querySelector('[data-teacher-add]')).toBeNull();
+  });
+
+  /** Signing up with an address that has an account must not make a second one. */
+  it('sends an address that already has an account back to signing in', async () => {
+    state.signUpAs = 'exists';
+    const { container } = draw();
+    fireEvent.click(container.querySelector('[data-teacher-tosignup]')!);
+    type(container, '[data-teacher-email]', 'a@b.com');
+    type(container, '[data-teacher-password]', 'long enough');
+    fireEvent.click(container.querySelector('[data-teacher-signup]')!);
+    await waitFor(() => expect(container.querySelector('[data-teacher-info]')).toBeTruthy());
+    expect(container.querySelector('[data-teacher-info]')!.textContent).toBe(t.exists);
+    expect(container.querySelector('[data-teacher-signin]')).toBeTruthy();
+  });
+
+  it('sends a password link', async () => {
+    const { container } = draw();
+    fireEvent.click(container.querySelector('[data-teacher-forgot]')!);
+    type(container, '[data-teacher-email]', 'a@b.com');
+    fireEvent.click(container.querySelector('[data-teacher-sendreset]')!);
+    await waitFor(() => expect(container.querySelector('[data-teacher-resetsent]')).toBeTruthy());
+    expect(calls.resets).toBe(1);
+  });
+
+  it('opens on a new password when a reset link brought it here', () => {
+    const { container } = render(
+      <I18nProvider forceLang="ar"><TeacherScreen onClose={vi.fn()} initialPhase="new-password" /></I18nProvider>,
+    );
+    expect(container.querySelector('[data-teacher-savepassword]')).toBeTruthy();
+  });
+
+  it('hands Google the sign-in', () => {
+    const { container } = draw();
+    fireEvent.click(container.querySelector('[data-teacher-google]')!);
+    expect(calls.google).toBe(1);
   });
 });
 
@@ -144,7 +212,7 @@ describe('arriving already signed in', () => {
     const { container } = draw();
     await waitFor(() => expect(container.querySelector('[data-teacher-add]')).toBeTruthy());
     expect(container.querySelector('[data-teacher-email]')).toBeNull();
-    expect(calls.requested).toBe(0);
+    expect(calls.signedInWith).toBe(0);
   });
 
   it('says plainly when there is nobody on it yet', async () => {
@@ -189,6 +257,20 @@ describe('the roster', () => {
     expect(shown).toContain('A1B 2C3');
     expect(shown).toContain(t.codeExpires);
     expect(calls.issued).toEqual(['s1']);
+  });
+
+  /** The participant may not be in the room: the code travels as a link too. */
+  it('offers the invitation to send, with the link that carries the code', async () => {
+    state.students = [student('s1', t.studentName)];
+    const { container } = await signedIn();
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+    fireEvent.click(container.querySelector('[data-student-code]')!);
+    await waitFor(() => expect(container.querySelector('[data-invite-whatsapp]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[data-invite-whatsapp]')!);
+    const url = decodeURIComponent(String(open.mock.calls[0][0]));
+    expect(url).toContain('https://wa.me/');
+    expect(url).toContain('https://sard.tajweedoo.com/app/#/join/A1B2C3');
+    open.mockRestore();
   });
 
   /** An outstanding code must not stay on screen for somebody who has left. */

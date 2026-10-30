@@ -523,6 +523,11 @@ a { color: inherit; }
   margin-inline: auto; margin-bottom: var(--s10); font-size: var(--t-lede);
 }
 .section-lede.start { text-align: start; margin-inline: 0; }
+/* سطر صغير تحت البطاقات: حدود ما يُعرض، يُقال بلا خطّ صغير مخبّأ */
+.section-note {
+  text-align: center; color: var(--ink-soft); max-width: 60ch;
+  margin: var(--s8) auto 0; font-size: var(--t-sm);
+}
 
 /* عين صغيرة فوق العنوان — تعرّف القسم قبل قراءته */
 /* عين القسم: تعرّفه قبل قراءة عنوانه. بلا تتبّع ولا رفع حالة — العربية
