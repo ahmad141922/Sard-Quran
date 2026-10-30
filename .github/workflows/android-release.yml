@@ -82,7 +82,7 @@ jobs:
 
       - name: الحزمة الموقَّعة
         working-directory: android
-        run: ./gradlew --no-daemon bundleRelease -PsardVersionCode=${{ inputs.version_code }} -PsardVersionName=${{ inputs.version_name }}
+        run: bash ./gradlew --no-daemon bundleRelease -PsardVersionCode=${{ inputs.version_code }} -PsardVersionName=${{ inputs.version_name }}
 
       - uses: actions/upload-artifact@v4
         with:
