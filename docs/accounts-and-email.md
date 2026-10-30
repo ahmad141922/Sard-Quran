@@ -28,7 +28,7 @@
 ## ١) Amazon SES: الإرسال من info@sard.tajweedoo.com
 
 1. ادخل **Amazon SES** في المنطقة (Region) التي فيها حسابك، ولاحظ اسمها
-   (مثل `eu-central-1`)؛ ستحتاجه في عنوان الخادم.
+   (حسابنا على `eu-north-1`، ستوكهولم)؛ ستحتاجه في عنوان الخادم.
 2. **Identities ← Create identity ← Domain**، واكتب `sard.tajweedoo.com`، وفعّل
    **Easy DKIM** (RSA 2048).
    - إن كان `tajweedoo.com` كله موثَّقًا عندك في SES من قبل، فالإرسال من
@@ -54,7 +54,7 @@
 1. **Authentication ← Emails ← SMTP Settings** ← فعّل *Enable custom SMTP*:
    - Sender email: `info@sard.tajweedoo.com`
    - Sender name: `تطبيق السرد القرآني`
-   - Host: `email-smtp.<المنطقة>.amazonaws.com` (مثل `email-smtp.eu-central-1.amazonaws.com`)
+   - Host: `email-smtp.<المنطقة>.amazonaws.com` (لحسابنا: `email-smtp.eu-north-1.amazonaws.com`)
    - Port: `587`
    - Username / Password: من الخطوة ٦ أعلاه.
 2. **Authentication ← Emails ← Templates**: الصق قوالب الرسائل العربية:

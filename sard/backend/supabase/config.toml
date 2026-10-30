@@ -242,7 +242,7 @@ otp_expiry = 3600
 # The hosted project takes the same values in Authentication → Emails → SMTP.
 [auth.email.smtp]
 enabled = false
-host = "email-smtp.eu-central-1.amazonaws.com"
+host = "email-smtp.eu-north-1.amazonaws.com"
 port = 587
 user = "env(SES_SMTP_USER)"
 pass = "env(SES_SMTP_PASSWORD)"
