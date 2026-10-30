@@ -1,0 +1,91 @@
+# يبني حزمة Google Play الموقَّعة (.aab) على خوادم GitHub — بلا Android Studio.
+#
+# التشغيل: Actions ← «بناء تطبيق الأندرويد» ← Run workflow، واكتب رقم إصدار
+# أكبر من آخر رقم في Play Console ← App bundle explorer. الحزمة تظهر أسفل
+# صفحة التشغيل في Artifacts، فتُنزَّل وتُرفع إلى Play.
+#
+# أسرار المستودع (Settings ← Secrets and variables ← Actions):
+#   ANDROID_KEYSTORE_BASE64       ملفّ الـ .jks مرمَّزًا base64
+#   ANDROID_KEYSTORE_PASSWORD     كلمة سرّ الملفّ
+#   ANDROID_KEY_PASSWORD          كلمة سرّ المفتاح (في PKCS12 هي نفسها غالبًا)
+#   VITE_SARD_SUPABASE_URL        كما في نشر الموقع
+#   VITE_SARD_SUPABASE_ANON_KEY   كما في نشر الموقع
+name: بناء تطبيق الأندرويد
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode — رقم صحيح أكبر من آخر رقم مرفوع'
+        required: true
+      version_name:
+        description: 'versionName — ما يراه المستخدم، مثل 1.1'
+        required: true
+        default: '1.1'
+      key_alias:
+        description: 'اسم المفتاح داخل الملفّ'
+        required: true
+        default: 'sard-upload'
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/sard/public/mushafs/
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0 platform-tools'
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: بناء الأداة ومزامنتها داخل android/
+        run: npm run android:build
+        env:
+          VITE_SARD_SUPABASE_URL: ${{ secrets.VITE_SARD_SUPABASE_URL }}
+          VITE_SARD_SUPABASE_ANON_KEY: ${{ secrets.VITE_SARD_SUPABASE_ANON_KEY }}
+          VITE_MUSHAF_BASE_URL: https://mushaf.tajweedoo.com
+
+      # المفتاح يُكتب خارج المستودع ويُمحى مع الخادم؛ لا يُطبع ولا يُرفع.
+      - name: مفتاح التوقيع
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ inputs.key_alias }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$STORE_PASSWORD" ]; then
+            echo "::error::أسرار التوقيع ناقصة — انظر رأس هذا الملفّ"; exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/upload.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=${KEY_PASSWORD:-$STORE_PASSWORD}"
+          } > android/keystore.properties
+
+      - name: الحزمة الموقَّعة
+        working-directory: android
+        run: ./gradlew --no-daemon bundleRelease -PsardVersionCode=${{ inputs.version_code }} -PsardVersionName=${{ inputs.version_name }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sard-${{ inputs.version_name }}-${{ inputs.version_code }}
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

@@ -1,0 +1,51 @@
+# ينشر الموقع (صفحة الهبوط + الأداة تحت /app/) على Cloudflare Pages
+# مع كلّ دمج في main — فلا بناء ولا wrangler على جهاز أحد.
+#
+# أسرار المستودع (Settings ← Secrets and variables ← Actions):
+#   CLOUDFLARE_API_TOKEN          رمز بصلاحية Cloudflare Pages: Edit
+#   VITE_SARD_SUPABASE_URL        من ملفّ .env
+#   VITE_SARD_SUPABASE_ANON_KEY   من ملفّ .env (anon، لا service_role)
+name: نشر الموقع
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['android/**', 'ios/**', 'docs/**', '**.md']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 7393495bdb6886a56715b1fbc67961ff
+    steps:
+      # بلا المصاحف (1.6 GB): مكانها R2، وحزمة النشر تستبعدها على أيّ حال.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/sard/public/mushafs/
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: البناء
+        run: node scripts/deploy-sard.mjs
+        env:
+          VITE_SARD_SUPABASE_URL: ${{ secrets.VITE_SARD_SUPABASE_URL }}
+          VITE_SARD_SUPABASE_ANON_KEY: ${{ secrets.VITE_SARD_SUPABASE_ANON_KEY }}
+          VITE_MUSHAF_BASE_URL: https://mushaf.tajweedoo.com
+
+      - name: النشر على Cloudflare Pages
+        run: npx --yes wrangler@4 pages deploy dist-deploy --project-name=sard-tajweedoo --branch=main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
