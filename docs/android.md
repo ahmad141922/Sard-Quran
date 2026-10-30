@@ -195,6 +195,18 @@ keytool -genkey -v -keystore sard-release.jks -keyalg RSA -keysize 2048 -validit
    `.gitignore`)، ثم `Build → Generate Signed App Bundle` من Android Studio.
 3. أوّل رفع إلى **الاختبار الداخلي** لا إلى الإنتاج.
 
+### كلّ تحديث
+
+- **رقم الإصدار يصعد دائمًا**: Play يرفض `versionCode` رآه من قبل. الافتراضي في
+  `android/app/build.gradle`، أو يُمرَّر دون تعديل شيء:
+  `gradlew bundleRelease -PsardVersionCode=5 -PsardVersionName=1.3`.
+  آخر رقم مرفوع تجده في Play Console ← **App bundle explorer**.
+- **مستوى واجهة البرمجة المستهدف**: Play يشترط كلّ سنة مستوًى أحدث للتحديثات.
+  هو الآن **36 (أندرويد ١٦)** في `android/variables.gradle`، ومعه Android Gradle
+  Plugin **8.9.1** في `android/build.gradle` (أقدم إصدار يعرف 36). وحواف الشاشة
+  — التي يفرضها أندرويد ١٥ فما بعده — مضبوطة أصلًا (`adjustMarginsForEdgeToEdge`،
+  أعلاه)، وزرّ الرجوع يمرّ بـ `OnBackPressedCallback` الذي يبقى يعمل مع الرجوع التنبّئي.
+
 ### ما يسأل عنه Play قبل النشر
 
 - **إقرار أمان البيانات**: الجلسة تحمل اسم طالب ورقم واتساب وتُرفع إلى سوبابيز،

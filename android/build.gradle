@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.android.tools.build:gradle:8.9.1'
         // The recogniser's API is Kotlin, and so is the plugin that drives it.
         // Written out rather than read from variables.gradle: that file is
         // applied below this block, so a property from it is not visible here.
