@@ -143,6 +143,12 @@ const SardApp: React.FC = () => {
    * exactly as it was, not break it.
    */
   const [roster, setRoster] = useState<{ id: string; name: string }[]>([]);
+  /*
+   * Who this device belongs to, for the same form: a signed-in teacher listens,
+   * a participant's phone that joined one recites. That side is named from the
+   * account rather than asked for.
+   */
+  const [account, setAccount] = useState<{ name: string; side: 'reciter' | 'listener' } | undefined>();
   useEffect(() => {
     if (!setupOpen) return;
     let live = true;
@@ -152,6 +158,17 @@ const SardApp: React.FC = () => {
         const r = await listStudents();
         if (live && r.ok) setRoster(r.value.map(st => ({ id: st.id, name: st.name })));
       } catch { /* no backend: no picker, and nothing else changes */ }
+    })();
+    void (async () => {
+      try {
+        const { accountName } = await import('@/lib/teacher-auth');
+        const teacher = await accountName();
+        if (!live) return;
+        if (teacher) { setAccount({ name: teacher, side: 'listener' }); return; }
+        const { loadEnrolment } = await import('@/lib/enrolment');
+        const joined = loadEnrolment();
+        setAccount(joined?.studentName ? { name: joined.studentName, side: 'reciter' } : undefined);
+      } catch { /* no backend: names are typed, as before */ }
     })();
     return () => { live = false; };
   }, [setupOpen]);
@@ -725,6 +742,7 @@ const SardApp: React.FC = () => {
             onStart={handleStart}
             roster={roster}
             rosterLabel={teacherText(lang).rosterTitle}
+            account={account}
           />
         )}
         {session && index && inSession && (

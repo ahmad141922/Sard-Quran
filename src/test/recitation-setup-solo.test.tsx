@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, cleanup, fireEvent, waitFor } from '@testing-library/react';
 
 import { I18nProvider } from '@/hooks/useI18n';
 import RecitationSetupModal from '@/components/board/RecitationSetupModal';
@@ -16,12 +16,12 @@ import { MushafProvider } from '@/lib/mushaf/MushafProvider';
 
 afterEach(cleanup);
 
-const draw = () => {
+const draw = (account?: { name: string; side: 'reciter' | 'listener' }) => {
   const onStart = vi.fn();
   const view = render(
     <I18nProvider forceLang="ar">
       <MushafProvider>
-        <RecitationSetupModal open onClose={() => {}} onStart={onStart} />
+        <RecitationSetupModal open onClose={() => {}} onStart={onStart} account={account} />
       </MushafProvider>
     </I18nProvider>,
   );
@@ -54,20 +54,44 @@ describe('the setup screen, reciting alone', () => {
     expect(field.value).toBe('محمّد');
   });
 
-  it('drops the listener and every way of reaching anyone', () => {
+  it('drops the listener', () => {
     const { container, solo } = draw();
     expect(listenerField(container)).toBeTruthy();
-    expect(whatsappFields(container).length).toBeGreaterThan(0);
-
     solo();
     expect(listenerField(container)).toBeNull();
-    expect(whatsappFields(container)).toHaveLength(0);
   });
 
-  it('keeps both sides and their numbers for a majlis', () => {
+  it('keeps both sides by name for a majlis', () => {
     const { container } = draw();
     expect(nameField(container)).toBeTruthy();
     expect(listenerField(container)).toBeTruthy();
-    expect(whatsappFields(container)).toHaveLength(2);
+  });
+});
+
+describe('asking for nothing the tool does not use', () => {
+  /** A phone number the tool never sends anything to is the shape of a scam. */
+  it('asks for no phone number and no country, in either mode', () => {
+    const { container, solo } = draw();
+    expect(whatsappFields(container)).toHaveLength(0);
+    expect(container.querySelector('[id$="-country"]')).toBeNull();
+    solo();
+    expect(whatsappFields(container)).toHaveLength(0);
+  });
+});
+
+describe('a signed-in device', () => {
+  it("names the teacher from the account, and does not ask", async () => {
+    const { container } = draw({ name: 'الشيخ أحمد', side: 'listener' });
+    const field = listenerField(container) as HTMLInputElement;
+    await waitFor(() => expect(field.value).toBe('الشيخ أحمد'));
+    expect(field.readOnly).toBe(true);
+    expect((nameField(container) as HTMLInputElement).readOnly).toBe(false);
+  });
+
+  it("names a participant's phone as the reciter", async () => {
+    const { container } = draw({ name: 'عائشة', side: 'reciter' });
+    const field = nameField(container)!;
+    await waitFor(() => expect(field.value).toBe('عائشة'));
+    expect(field.readOnly).toBe(true);
   });
 });
