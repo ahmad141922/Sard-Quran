@@ -183,6 +183,9 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
     setLanded({ surah: target.surah, ayah: target.ayah });
   }, [book, clamp, index]);
 
+  /** Whether the bar and the footer are shown; a tap on the page's middle toggles them. */
+  const [chrome, setChrome] = useState(true);
+
   // ── turning ──
   const down = useRef<{ x: number; y: number } | null>(null);
   const onPointerDown = (e: React.PointerEvent) => { down.current = { x: e.clientX, y: e.clientY }; };
@@ -199,6 +202,9 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
       const x = e.clientX - box.left;
       if (x < box.width * 0.25) turn(1);
       else if (x > box.width * 0.75) turn(-1);
+      // The middle, off any word, hides the bars and brings them back: the
+      // page alone on the screen, as a printed muṣḥaf is.
+      else if (!(e.target as HTMLElement).closest('[data-word]')) setChrome(c => !c);
       return;
     }
     const intent = pageIntentOf(dx, dy);
@@ -332,7 +338,7 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
     // toolbar and the page-turn footer. Zero everywhere else.
     <div dir={dir} className={`fixed inset-0 z-50 flex flex-col pt-safe pb-safe px-safe ${MUSHAF_SURFACE}`}>
       {/* ── the bar: out, the book, the two ways in ── */}
-      <header className="flex shrink-0 items-center gap-1 border-b border-emerald-900/10 px-2 py-1.5 dark:border-emerald-100/10 sm:gap-2 sm:px-3">
+      <header className={`${chrome ? 'flex' : 'hidden'} shrink-0 items-center gap-1 border-b border-emerald-900/10 px-2 py-1.5 dark:border-emerald-100/10 sm:gap-2 sm:px-3`}>
         <button
           onClick={onClose}
           data-a11y-tap
@@ -428,6 +434,7 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
                   {line.map((w, wi) => (
                     <span
                       key={wi}
+                      data-word
                       onClick={() => setLanded({ surah: w.surah, ayah: w.ayah })}
                       className={`cursor-pointer rounded ${w.ayahId === landedId ? 'bg-emerald-500/20' : ''}`}
                     >
@@ -445,6 +452,7 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
                 <React.Fragment key={`${v.id}-${from}`}>
                   {opensSurah && <SurahBand name={surahNameAr(v.sura_no)} />}
                   <span
+                    data-word
                     onClick={() => setLanded({ surah: v.sura_no, ayah: v.aya_no })}
                     className={`cursor-pointer rounded ${v.id === landedId ? 'bg-emerald-500/20' : ''}`}
                   >{shown} </span>
@@ -534,16 +542,17 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
       )}
 
       {/* ── where you are, and the two ways on ── */}
-      <footer className="flex shrink-0 items-center justify-center gap-4 border-t border-emerald-900/10 px-3 py-2 dark:border-emerald-100/10">
+      <footer className={`${chrome ? 'flex' : 'hidden'} shrink-0 items-center justify-center gap-4 border-t border-emerald-900/10 px-3 py-2 dark:border-emerald-100/10`}>
         <button
           onClick={() => turn(-1)}
           disabled={page <= firstPage}
           data-a11y-tap
           aria-label={t('recPrevPage')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-900/15 text-foreground transition-colors hover:bg-emerald-900/[0.06] disabled:opacity-30 dark:border-emerald-100/15"
         >
-          <ChevronRight size={20} className="rtl:hidden" />
-          <ChevronLeft size={20} className="hidden rtl:block" />
+          {/* Each arrow points away from the page number, toward where its page
+              lies: in Arabic the previous page is to the right. */}
+          <ChevronLeft size={26} className="rtl:rotate-180" />
         </button>
         <span className="min-w-0 text-center text-sm">
           {where && (
@@ -563,10 +572,9 @@ const MushafReader: React.FC<Props> = ({ index, onClose, back, openAt }) => {
           disabled={page >= lastPage}
           data-a11y-tap
           aria-label={t('recNextPage')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-900/15 text-foreground transition-colors hover:bg-emerald-900/[0.06] disabled:opacity-30 dark:border-emerald-100/15"
         >
-          <ChevronLeft size={20} className="rtl:hidden" />
-          <ChevronRight size={20} className="hidden rtl:block" />
+          <ChevronRight size={26} className="rtl:rotate-180" />
         </button>
       </footer>
 

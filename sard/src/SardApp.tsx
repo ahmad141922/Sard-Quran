@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 
 import { anyMatnReady, useMatns } from '@/lib/matn/use-matns';
 import type { MatnSession } from '@/lib/matn/session';
 import type { MatnPosition } from '@/lib/matn/position';
-import { BookOpen, BookOpenCheck, Play, ImageIcon, ScrollText, Trash2, Loader2, Moon, Sun, Info, X, LineChart, Users } from 'lucide-react';
+import { BookOpen, BookOpenCheck, Play, ImageIcon, ScrollText, Trash2, Loader2, Moon, Sun, Info, X, LineChart, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { useI18n } from '@/hooks/useI18n';
 import LangToggle from '@/components/board/LangToggle';
@@ -512,7 +512,7 @@ const SardApp: React.FC = () => {
           >
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
-          <LangToggle />
+          <LangToggle iconOnly className="flex shrink-0 items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" />
           {/*
             The one screen a store requires an app to carry: what this is, who
             made it, how to reach them, and what happens to what the teacher
@@ -527,6 +527,22 @@ const SardApp: React.FC = () => {
             className="flex shrink-0 items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <Info size={17} />
+          </button>
+          {/*
+            The account, where every app keeps it: a round button at the end of
+            the bar. Signing in, the session participants, or joining a teacher
+            — one door, offered to everybody and required of nobody, and out of
+            the way of the muṣḥaf people came for.
+          */}
+          <button
+            onClick={() => setTeacherOpen({})}
+            data-teacher-open
+            data-a11y-tap
+            aria-label={teacherText(lang).rosterTitle}
+            title={teacherText(lang).rosterTitle}
+            className="flex shrink-0 items-center justify-center rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/[0.08]"
+          >
+            <UserRound size={17} />
           </button>
           {/*
             No link to the reports.
@@ -583,77 +599,41 @@ const SardApp: React.FC = () => {
         </button>
 
         {/*
-          The other reason to open this app.
+          Everything else this screen opens, as one row of tiles under the one
+          big button — reading, progress, and the mutun. Four full-width buttons
+          of the same weight made the screen read as a menu with no first
+          choice; now it has one, and the rest sit together beneath it.
 
-          A majlis is a record: it asks who is reciting and to whom, and every
-          tap in it means something afterwards. Most openings are not that —
-          they are someone wanting the Book on a screen. So the second button
-          goes straight to the pages, asks nothing, and saves nothing but where
-          it was left.
+          Reading asks nothing and saves nothing but where it was left. Progress
+          appears once a majlis has finished — before that every panel behind
+          it would be empty. A matn appears only once its print is named.
         */}
-        <button
-          onClick={() => setReading(true)}
-          disabled={!index}
-          className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/25 bg-transparent py-3 text-sm font-bold text-foreground transition-all hover:border-primary/60 hover:bg-primary/[0.04] active:scale-[0.99] disabled:opacity-50 disabled:active:scale-100"
-        >
-          <BookOpen size={18} className="text-primary" />
-          {t('readMode')}
-        </button>
-        <p className="mt-1.5 text-center text-[11px] text-muted-foreground">{t('readModeHint')}</p>
-
-        {/*
-          Progress, once a majlis has actually finished. Before that every
-          panel behind it would be an empty state, and four of those stacked
-          is a worse first impression than no button.
-        */}
-        {(history?.some(s => s.endedAt !== null) ?? false) && (
-          <button
-            onClick={() => setProgressOpen(true)}
-            data-progress-open
-            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/25 bg-transparent py-3 text-sm font-bold text-foreground transition-all hover:border-primary/60 hover:bg-primary/[0.04] active:scale-[0.99]"
-          >
-            <LineChart size={18} className="text-primary" />
-            {t('recProgress')}
-          </button>
-        )}
-
-        {/*
-          The halaqa: signing in as a muqri', or joining one as a reciter.
-
-          Offered to everybody and required of nobody. It is the last button
-          rather than the first because the commonest visit here — opening the
-          muṣḥaf to review alone — never needs it, and a sign-in above the thing
-          people came for reads as a wall.
-        */}
-        <button
-          onClick={() => setTeacherOpen({})}
-          data-teacher-open
-          className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/25 bg-transparent py-3 text-sm font-bold text-foreground transition-all hover:border-primary/60 hover:bg-primary/[0.04] active:scale-[0.99]"
-        >
-          <Users size={18} className="text-primary" />
-          {teacherText(lang).rosterTitle}
-        </button>
-
-        {/*
-          The matn entry, and only when there is a matn to recite.
-
-          Not greyed out and not labelled "coming soon": a matn is offerable
-          only once its print is named, and until then the honest interface is
-          one that does not mention it.
-
-          Asked of the registry rather than of the loaded texts, because the
-          texts are not fetched until this button is pressed — see `useMatns`.
-        */}
-        {anyMatnReady() && (
-          <button
-            onClick={() => setMatnSetupOpen(true)}
-            data-matn-start
-            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/25 bg-transparent py-3 text-sm font-bold text-foreground transition-all hover:border-primary/60 hover:bg-primary/[0.04] active:scale-[0.99]"
-          >
-            <ScrollText size={18} className="text-primary" />
-            {t('recMatn')}
-          </button>
-        )}
+        {(() => {
+          const tile = 'flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-primary/20 bg-transparent px-2 py-3 text-center text-sm font-bold text-foreground transition-all hover:border-primary/55 hover:bg-primary/[0.04] active:scale-[0.99] disabled:opacity-50 disabled:active:scale-100';
+          const showProgress = history?.some(x => x.endedAt !== null) ?? false;
+          const showMatn = anyMatnReady();
+          const count = 1 + (showProgress ? 1 : 0) + (showMatn ? 1 : 0);
+          return (
+            <div className={`mt-3 grid gap-2.5 ${count === 3 ? 'grid-cols-3' : count === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <button onClick={() => setReading(true)} disabled={!index} data-read-open className={tile}>
+                <BookOpen size={20} className="text-primary" />
+                {t('readMode')}
+              </button>
+              {showProgress && (
+                <button onClick={() => setProgressOpen(true)} data-progress-open className={tile}>
+                  <LineChart size={20} className="text-primary" />
+                  {t('recProgress')}
+                </button>
+              )}
+              {showMatn && (
+                <button onClick={() => setMatnSetupOpen(true)} data-matn-start className={tile}>
+                  <ScrollText size={20} className="text-primary" />
+                  {t('recMatn')}
+                </button>
+              )}
+            </div>
+          );
+        })()}
 
         <h2 className="mb-2 mt-8 text-sm font-bold text-muted-foreground">{t('recPastSessions')}</h2>
         {history === null ? (

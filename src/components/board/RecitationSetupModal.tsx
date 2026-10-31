@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { X, BookOpenCheck } from 'lucide-react';
+import { X, BookOpenCheck, Play } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { SURAHS, surahName } from '@/lib/quran-data';
 import { discoverMushafs, loadQuranIndex, type QuranIndex } from '@/lib/quran-index';
@@ -459,18 +459,25 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
 
           {/* Which book this majlis is recited from. The session records it, and
               every ayah number in the report will be that book's own. */}
-          <MushafPicker />
+          {/* One line, not a field and its paragraph: the book rarely changes
+              between sittings, and the form remembers it. */}
+          <div>
+            <div className="mb-1.5 text-xs font-medium text-muted-foreground">{t('recMushaf')}</div>
+            <MushafPicker compact className="w-full" />
+          </div>
 
           {/* Goal */}
           <div>
             <div className="mb-1.5 text-xs font-medium text-muted-foreground">{t('recGoal')}</div>
-            <div className="grid grid-cols-3 gap-1.5">
+            {/* One row that scrolls sideways, rather than a grid of six that
+                took the height of a whole field. */}
+            <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
               {GOALS.map(g => (
                 <button
                   key={g.kind}
                   onClick={() => setGoal(g.kind)}
                   aria-pressed={goal === g.kind}
-                  className={`rounded-lg border-2 px-2 py-2 text-xs font-bold transition-all ${
+                  className={`shrink-0 whitespace-nowrap rounded-full border-2 px-3.5 py-2 text-xs font-bold transition-all ${
                     goal === g.kind
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
                       : 'border-border bg-background text-foreground hover:border-emerald-600/40'
@@ -515,8 +522,9 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
                 type="button"
                 data-resume-position
                 onClick={() => { setSurah(resumeAt.surah); setAyah(resumeAt.ayah); }}
-                className="mt-1.5 rounded-full border-2 border-emerald-600/30 px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition-colors hover:border-emerald-600 hover:bg-emerald-600/10 dark:text-emerald-400"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-600/40 bg-emerald-600/[0.07] px-3 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-600 hover:bg-emerald-600/15 dark:text-emerald-400"
               >
+                <Play size={15} aria-hidden />
                 {t('recContinueFrom').replace('{where}', positionLabel(resumeAt))}
               </button>
             )}
@@ -572,7 +580,13 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
             )}
           </div>
 
-          <div>
+        </div>
+        {/*
+          The start, pinned under the form rather than at the end of it: on a
+          phone the end of it was a scroll away, so the one button the whole
+          form exists for was the one not on screen.
+        */}
+        <div className="shrink-0 border-t border-border bg-card px-4 py-3">
             <button
               onClick={handleStart}
               disabled={!canStart}
@@ -591,7 +605,6 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
               </p>
             )}
           </div>
-        </div>
       </div>
     </div>
   );
