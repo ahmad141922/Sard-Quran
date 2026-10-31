@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   X, Pause, Play, Minimize2, ChevronRight, ChevronLeft, Sun, Moon, Lightbulb, Undo2, CheckCheck,
-  ChevronUp, Trash2, ListX, Search, Eye, EyeOff, Type,
+  ChevronUp, Trash2, ListX, Search, Eye, EyeOff, Type, MoreVertical, Check, Info,
 } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { useTheme } from '@/lib/theme';
@@ -26,7 +26,6 @@ import LangToggle from './LangToggle';
 import MushafPageViewer from './MushafPageViewer';
 import type { At } from '@/lib/asr/follow';
 import { notedWords, pinnedWordAt, tapWord, withPinnedWord, type WordPin } from '@/lib/word-pin';
-import MushafPicker from './MushafPicker';
 import CorrectionRecorder from './CorrectionRecorder';
 import SoloListenPanel from './SoloListenPanel';
 import QuranSearchBox from './QuranSearchBox';
@@ -36,7 +35,7 @@ import {
   AYAH_COUNTING, CANONICAL_COUNTING, countingName, mushafFullName, type MushafDefinition,
 } from '@/lib/mushaf/registry';
 import { hasPageAsset, useMushafCoverage } from '@/lib/mushaf/coverage';
-import { getMushaf, defaultMushaf } from '@/lib/mushaf/registry';
+import { getMushaf, defaultMushaf, riwayaName } from '@/lib/mushaf/registry';
 import { useMushafPageIndex } from '@/lib/mushaf/page-index';
 import { isTap, pageIntentOf } from '@/lib/mushaf/swipe';
 import { usePageTurn } from '@/lib/mushaf/use-page-turn';
@@ -146,6 +145,10 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
    * count wants the list, not a scroll past the progress bar to find it.
    */
   const [sheet, setSheet] = useState<null | 'panel' | 'notes'>(null);
+  /** The «⋯» menu of everything not pressed mid-recitation. */
+  const [menuOpen, setMenuOpen] = useState(false);
+  /** The note hint, for this device's first two sittings only. */
+  const [showNoteHint] = useState(() => noteHintFor(session.id));
   const [overflows, setOverflows] = useState(false);
   const [tooNarrow, setTooNarrow] = useState(false);
   const [announcement, setAnnouncement] = useState('');
@@ -745,47 +748,46 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
         <QuranSearchBox index={index} onGo={goToAnchor} onClose={() => setSearching(false)} />
       )}
 
-      {/* Header — a thin toolbar on a phone, where the page is what matters. */}
-      <header className="flex items-center justify-between gap-2 border-b border-emerald-900/10 px-2 py-1.5 dark:border-emerald-100/10 sm:px-4 sm:py-2.5 short:py-1 sm:short:py-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="min-w-0 truncate text-sm font-bold text-foreground sm:text-base">{session.studentName}</span>
-          {/* A paused clock is why the report can show a long span but little
-              listening time. It must be impossible to miss. */}
-          {!running && (
-            <button
-              onClick={togglePause}
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-extrabold text-white transition-colors hover:bg-amber-600 sm:px-2.5 sm:text-[11px]"
-            >
-              <Play size={12} />
-              <span className="hidden sm:inline">{t('recPausedBanner')}</span>
-              <span className="sm:hidden">{t('recPause')}</span>
-            </button>
-          )}
-        </div>
-        {/* The book is stated on the bar below, beside the position — see
-            there. It is not offered anywhere during a majlis: changing it
-            mid-recitation would move the page breaks the student has memorised
-            the shape of. */}
+      {/*
+        Header — one thin bar, where the page is what matters.
 
-        {/*
-          Seven controls in a row on a phone, each of them a 17px glyph in 6px
-          of padding — a 29px target, well under the 44px the rest of the tool
-          keeps. They are also the controls pressed while somebody is reciting
-          and nobody is looking at the screen properly, which is the worst
-          moment to miss one and hit the neighbour: the pause is beside the end.
-          `data-a11y-tap` is the project's own answer — see `src/index.css`.
-        */}
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        It used to be eight bare glyphs in a row and a second bar of figures
+        under it. What a teacher reaches for mid-recitation stays out: hiding
+        the page, search, pause, and the end. Everything else — the theme, the
+        language, the screen light, minimising, the word view, the notes and
+        the details — is one tap away under «⋯», with its name written beside
+        it. The figures ride under the student's name, where they are read
+        rather than pressed.
+      */}
+      <header className="flex items-center justify-between gap-2 border-b border-emerald-900/10 px-2 py-1.5 dark:border-emerald-100/10 sm:px-4 sm:py-2 short:py-1 sm:short:py-1">
+        <button
+          type="button"
+          onClick={() => setSheet('panel')}
+          aria-expanded={sheet !== null}
+          className="flex min-w-0 flex-1 flex-col items-start text-start lg:pointer-events-none"
+        >
+          <span className="flex min-w-0 max-w-full items-center gap-2">
+            <span className="min-w-0 truncate text-sm font-bold text-foreground sm:text-base">{session.studentName}</span>
+          </span>
+          <span className="flex min-w-0 max-w-full items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground">
+            <span className="min-w-0 truncate">{positionLabel(currentPos)} · {riwayaName(activeMushaf.riwayaId)}</span>
+            <span className="shrink-0 font-bold text-emerald-700 dark:text-emerald-400">{pct}%</span>
+            <span className="shrink-0">{formatClock(activeMs(session))}</span>
+          </span>
+        </button>
+        {/* A paused clock is why the report can show a long span but little
+            listening time. It must be impossible to miss. */}
+        {!running && (
           <button
-            onClick={toggleTheme}
-            data-a11y-tap
-            aria-label={theme === 'dark' ? t('recLightMode') : t('recDarkMode')}
-            title={theme === 'dark' ? t('recLightMode') : t('recDarkMode')}
-            className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground sm:p-2"
+            onClick={togglePause}
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-extrabold text-white transition-colors hover:bg-amber-600"
           >
-            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            <Play size={12} />
+            {t('recPausedBanner')}
           </button>
-          <LangToggle iconOnly className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground sm:p-2" />
+        )}
+
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           <button
             onClick={() => {
               setVeiled(v => {
@@ -799,11 +801,11 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
             aria-label={veiled ? t('veilShow') : t('veilHide')}
             title={veiled ? t('veilShow') : t('veilHide')}
             aria-pressed={veiled}
-            className={`flex items-center justify-center rounded-lg p-1.5 transition-colors sm:p-2 ${
+            className={`flex items-center justify-center rounded-lg p-2 transition-colors ${
               veiled ? 'text-emerald-500' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {veiled ? <EyeOff size={17} /> : <Eye size={17} />}
+            {veiled ? <EyeOff size={19} /> : <Eye size={19} />}
           </button>
           <button
             onClick={() => setSearching(true)}
@@ -811,31 +813,81 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
             data-a11y-tap
             aria-label={t('searchTitle')}
             title={t('searchTitle')}
-            className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground sm:p-2"
+            className="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
           >
-            <Search size={17} />
-          </button>
-          <button
-            onClick={() => setKeepAwake(v => !v)}
-            data-a11y-tap
-            aria-pressed={keepAwake}
-            title={t('recKeepAwake')}
-            aria-label={t('recKeepAwake')}
-            className={`flex items-center justify-center rounded-lg p-1.5 transition-colors sm:p-2 ${keepAwake ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            <Lightbulb size={17} />
+            <Search size={19} />
           </button>
           <button onClick={togglePause} data-a11y-tap title={running ? t('recPause') : t('recResume')} aria-label={running ? t('recPause') : t('recResume')}
-            className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground sm:p-2">
-            {running ? <Pause size={17} /> : <Play size={17} />}
+            className="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground">
+            {running ? <Pause size={19} /> : <Play size={19} />}
           </button>
-          <button onClick={onMinimize} data-a11y-tap title={t('recMinimize')} aria-label={t('recMinimize')}
-            className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground sm:p-2">
-            <Minimize2 size={17} />
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen(o => !o)}
+              data-session-menu
+              data-a11y-tap
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label={t('recMoreOptions')}
+              title={t('recMoreOptions')}
+              className="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <MoreVertical size={19} />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-[190]" onClick={() => setMenuOpen(false)} aria-hidden />
+                <div
+                  role="menu"
+                  dir={dir}
+                  className={`absolute end-0 top-full z-[191] mt-1 w-60 overflow-hidden rounded-xl border border-emerald-900/15 py-1 shadow-xl dark:border-emerald-100/15 ${MUSHAF_SURFACE}`}
+                >
+                  <MenuItem
+                    icon={<ListX size={16} />}
+                    label={`${t('recNotes')} (${counts.hesitation + counts.memory + counts.tajweed + counts.shakl})`}
+                    onClick={() => { setMenuOpen(false); setSheet('notes'); }}
+                    className="lg:hidden"
+                  />
+                  <MenuItem
+                    icon={<Info size={16} />}
+                    label={t('recSessionDetails')}
+                    onClick={() => { setMenuOpen(false); setSheet('panel'); }}
+                    className="lg:hidden"
+                  />
+                  {printedPage !== null && hasPageAsset(activeMushaf, printedPage) && (
+                    <MenuItem
+                      icon={<Type size={16} />}
+                      label={t('recWordView')}
+                      checked={wordView}
+                      onClick={() => { setWordView(v => !v); setPin(null); setMenuOpen(false); }}
+                      data-word-view
+                    />
+                  )}
+                  <MenuItem
+                    icon={<Lightbulb size={16} />}
+                    label={t('recKeepAwake')}
+                    checked={keepAwake}
+                    onClick={() => setKeepAwake(v => !v)}
+                  />
+                  <MenuItem
+                    icon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                    label={theme === 'dark' ? t('recLightMode') : t('recDarkMode')}
+                    onClick={() => { toggleTheme(); setMenuOpen(false); }}
+                  />
+                  <LangToggle className="flex w-full items-center gap-3 px-3 py-2.5 text-start text-sm text-foreground transition-colors hover:bg-emerald-900/[0.05] dark:hover:bg-emerald-100/[0.05]" />
+                  <MenuItem
+                    icon={<Minimize2 size={16} />}
+                    label={t('recMinimize')}
+                    onClick={() => { setMenuOpen(false); onMinimize(); }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
           <button onClick={onEnd} data-a11y-tap title={t('recEnd')} aria-label={t('recEnd')}
-            className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-2 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 sm:px-3 sm:py-2">
-            <X size={14} />
+            className="ms-0.5 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 sm:px-3">
+            <X size={15} />
             <span className="hidden sm:inline">{t('recEnd')}</span>
           </button>
         </div>
@@ -854,76 +906,6 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
             .replace('{to}', countingName(AYAH_COUNTING[activeMushaf.ayahCounting], lang))}
         </p>
       )}
-
-      {/*
-        The second bar: where the majlis is, and which book it is in.
-
-        The book used to sit in the toolbar above, between the student's name
-        and five icons, where it read as one more control. It belongs beside
-        the position — they are one statement: this verse, in this book.
-
-        Below lg the side panel would push the mushaf into a sliver, so the
-        figures join this bar and the rest of the panel is one tap away.
-      */}
-      <div className="flex items-center gap-2 border-b border-emerald-900/10 px-3 py-1.5 dark:border-emerald-100/10">
-        <button
-          onClick={() => setSheet('panel')}
-          className="flex min-w-0 flex-1 items-center gap-2 text-start lg:pointer-events-none"
-          aria-expanded={sheet !== null}
-        >
-          <span className="min-w-0 truncate text-xs font-bold text-foreground">
-            {positionLabel(currentPos)}
-          </span>
-          <MushafPicker locked mushaf={activeMushaf} className="shrink-0" />
-          <span className="shrink-0 text-xs font-bold tabular-nums text-emerald-700 dark:text-emerald-400 lg:hidden">{pct}%</span>
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground lg:hidden">{formatClock(activeMs(session))}</span>
-          <ChevronUp size={14} className="shrink-0 text-muted-foreground lg:hidden" aria-hidden />
-        </button>
-
-        {/*
-          Its own control, and the answer to "I recorded that by mistake and
-          the undo bar is gone". Deleting an old note was always possible, at
-          the bottom of a panel nobody opens mid-recitation; now the counts
-          themselves are the way in.
-        */}
-        <button
-          onClick={() => setSheet('notes')}
-          data-a11y-tap
-          aria-label={`${t('recNotes')} — ${counts.hesitation + counts.memory + counts.tajweed + counts.shakl}`}
-          className="flex shrink-0 items-center gap-2 rounded-lg border border-emerald-900/10 px-2 py-1 transition-colors hover:border-emerald-600/40 dark:border-emerald-100/10 lg:hidden"
-        >
-          {(['hesitation', 'memory', 'tajweed', 'shakl'] as NoteKind[]).map(kind => (
-            <span key={kind} className="flex shrink-0 items-center gap-1 text-[11px] tabular-nums text-muted-foreground">
-              <span className={`h-1.5 w-1.5 rounded-full ${NOTE_STYLE[kind].dot}`} aria-hidden />
-              {counts[kind]}
-            </span>
-          ))}
-          <ListX size={13} className="shrink-0 text-muted-foreground" aria-hidden />
-        </button>
-        {/*
-          The words instead of the plate. Offered only where there is a plate to
-          switch away from — elsewhere the words are already what is shown.
-          Leaving it lets go of any pinned word, for the reason in `word-pin.ts`.
-        */}
-        {printedPage !== null && hasPageAsset(activeMushaf, printedPage) && (
-          <button
-            type="button"
-            data-word-view
-            data-a11y-tap
-            aria-pressed={wordView}
-            aria-label={t('recWordView')}
-            title={t('recWordView')}
-            onClick={() => { setWordView(v => !v); setPin(null); }}
-            className={`flex shrink-0 items-center rounded-lg border px-2 py-1 transition-colors ${
-              wordView
-                ? 'border-sky-500/60 bg-sky-500/10 text-sky-700 dark:text-sky-300'
-                : 'border-emerald-900/10 text-muted-foreground hover:border-emerald-600/40 dark:border-emerald-100/10'
-            }`}
-          >
-            <Type size={14} aria-hidden />
-          </button>
-        )}
-      </div>
 
       {/* Body */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -1268,10 +1250,11 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
               onLongNote={s => addSlot(s, true)}
               disabled={!running}
             />
-            {/* The hint costs a line a short screen cannot spare. */}
-            {/* Worth its line everywhere except a screen too short to spare one:
-                nothing else tells you a long press adds the detail. */}
-            <div className="mt-1 text-center text-[10px] text-muted-foreground sm:text-[11px] short:hidden">{t('recNoteHint')}</div>
+            {/* Nothing else tells you a long press adds the detail — but after
+                two sittings it has been read, and its line is the page's. */}
+            {showNoteHint && (
+              <div className="mt-1 text-center text-[10px] text-muted-foreground sm:text-[11px] short:hidden">{t('recNoteHint')}</div>
+            )}
           </div>
         </div>
 
@@ -1603,3 +1586,44 @@ function juzStateKey(state: ReturnType<typeof juzStates>[number]) {
 }
 
 export default RecitationOverlay;
+
+/** One line of the «⋯» menu: an icon, its name written out, and a tick where it is a switch. */
+const MenuItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  checked?: boolean;
+  className?: string;
+  'data-word-view'?: boolean;
+}> = ({ icon, label, onClick, checked, className = '', ...rest }) => (
+  <button
+    type="button"
+    role={checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
+    aria-checked={checked}
+    onClick={onClick}
+    {...rest}
+    className={`flex w-full items-center gap-3 px-3 py-2.5 text-start text-sm text-foreground transition-colors hover:bg-emerald-900/[0.05] dark:hover:bg-emerald-100/[0.05] ${className}`}
+  >
+    <span className="text-muted-foreground" aria-hidden>{icon}</span>
+    <span className="min-w-0 flex-1">{label}</span>
+    {checked && <Check size={15} className="text-emerald-600" aria-hidden />}
+  </button>
+);
+
+const NOTE_HINT_KEY = 'sard:note-hint-sessions';
+
+/**
+ * Whether the line under the note buttons is still worth its space: shown in
+ * the first two sittings on this device, and for the whole of each of them.
+ */
+function noteHintFor(sessionId: string): boolean {
+  try {
+    const seen: string[] = JSON.parse(localStorage.getItem(NOTE_HINT_KEY) ?? '[]');
+    if (seen.includes(sessionId)) return true;
+    if (seen.length >= 2) return false;
+    localStorage.setItem(NOTE_HINT_KEY, JSON.stringify([...seen, sessionId]));
+    return true;
+  } catch {
+    return true;
+  }
+}

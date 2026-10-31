@@ -837,12 +837,14 @@ export function arabicMinutes(n: number): string {
  * built here rather than glued together from flat translation keys.
  */
 export function formatVolumeAr(v: VolumeSummary): string {
-  const page = (n: number) => arabicCount(n, 'صفحة', 'صفحتان', 'صفحات', 'صفحة');
+  // «صفحة · آية» is correct Arabic for one of each, and on a report it read as
+  // two numbers gone missing — so one is said out loud.
+  const page = (n: number) => arabicCount(n, 'صفحة واحدة', 'صفحتان', 'صفحات', 'صفحة');
   const parts: string[] = [];
-  if (v.fullJuz) parts.push(arabicCount(v.fullJuz, 'جزء', 'جزءان', 'أجزاء', 'جزءًا'));
+  if (v.fullJuz) parts.push(arabicCount(v.fullJuz, 'جزء واحد', 'جزءان', 'أجزاء', 'جزءًا'));
   if (v.extraPages) parts.push(page(v.extraPages));
   if (!parts.length) parts.push(page(v.pages));
-  return `${parts.join(' و')} · ${arabicCount(v.ayahs, 'آية', 'آيتان', 'آيات', 'آية')}`;
+  return `${parts.join(' و')} · ${arabicCount(v.ayahs, 'آية واحدة', 'آيتان', 'آيات', 'آية')}`;
 }
 
 /**

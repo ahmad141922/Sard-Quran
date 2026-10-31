@@ -462,7 +462,9 @@ describe('formatting', () => {
   });
 
   it('inflects the Arabic volume line', () => {
-    expect(formatVolumeAr({ ayahs: 100, fullJuz: 1, extraPages: 0, pages: 20 })).toBe('جزء · 100 آية');
+    expect(formatVolumeAr({ ayahs: 100, fullJuz: 1, extraPages: 0, pages: 20 })).toBe('جزء واحد · 100 آية');
+    // One of each is said out loud: «صفحة · آية» read as numbers gone missing.
+    expect(formatVolumeAr({ ayahs: 1, fullJuz: 0, extraPages: 0, pages: 1 })).toBe('صفحة واحدة · آية واحدة');
     expect(formatVolumeAr({ ayahs: 3, fullJuz: 0, extraPages: 0, pages: 2 })).toBe('صفحتان · 3 آيات');
     expect(formatVolumeAr({ ayahs: 900, fullJuz: 5, extraPages: 3, pages: 103 })).toBe('5 أجزاء و3 صفحات · 900 آية');
   });

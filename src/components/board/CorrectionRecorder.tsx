@@ -82,6 +82,9 @@ export function CorrectionRecorder<P>({ sessionId, position, onRecorded, disable
         }`}
       >
         {recording ? <Square size={13} /> : <Mic size={15} />}
+        {/* Said, not only drawn: a bare microphone over the note buttons read
+            as «the tool is listening», which in a majlis it is not. */}
+        {!recording && <span>{t('recCorrectionByVoice')}</span>}
         {recording && (
           <span className="tabular-nums" data-elapsed>
             {seconds(elapsedMs)} / {seconds(MAX_CLIP_MS)}

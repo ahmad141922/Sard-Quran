@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, Copy, Check, Image as ImageIcon, LayoutGrid, ClipboardList, Award, Share2 } from 'lucide-react';
+import { X, Copy, Check, Image as ImageIcon, LayoutGrid, ClipboardList, Award, Share2, Send } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { useFloatingRect } from './useFloatingRect';
 import { loadQuranFont, surahName } from '@/lib/quran-data';
@@ -390,38 +390,53 @@ const RecitationReportModal: React.FC<Props> = ({ session, index, history, onClo
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-border bg-accent/20 p-3">
-          <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent">
-            {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-            {copied ? t('recCopied') : t('recCopyText')}
-          </button>
-          <button onClick={handleSaveImage} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
-            <ImageIcon size={14} />
-            {t('recSaveImage')}
-          </button>
-          {/* The one thing here meant for the student rather than the teacher —
-              and only where somebody other than the reciter was listening. */}
-          {certifiable && (
-            <button onClick={handleCertificate} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
-              <Award size={14} />
-              {t('recCertificate')}
+        {/*
+          One main action and a row of the rest. Four buttons of equal weight
+          left the eye nowhere to start: the report goes to a parent, so
+          sending it leads, and the certificate beside it where there is one.
+        */}
+        <div className="border-t border-border bg-accent/20 p-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(asText())}`, '_blank', 'noopener')}
+              data-report-whatsapp
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-3 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            >
+              <Send size={16} />
+              {t('recSendWhatsapp')}
             </button>
-          )}
-          {cardOffered && (
-            <button onClick={handleCard} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
-              <Share2 size={14} />
-              {t('recCard')}
+            {certifiable && (
+              <button onClick={handleCertificate} disabled={busy} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50">
+                <Award size={16} />
+                {t('recCertificate')}
+              </button>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <button onClick={handleSaveImage} disabled={busy} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
+              <ImageIcon size={14} />
+              {t('recSaveImage')}
             </button>
-          )}
-          {onInsertImage && (
-            <button onClick={handleInsert} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
-              <LayoutGrid size={14} />
-              {t('recInsertBoard')}
+            <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent">
+              {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+              {copied ? t('recCopied') : t('recCopyText')}
             </button>
-          )}
-          <button onClick={onReopen} className="rounded-lg px-2 py-2 text-xs font-medium text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline">
-            {t('recReopen')}
-          </button>
+            {cardOffered && (
+              <button onClick={handleCard} disabled={busy} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
+                <Share2 size={14} />
+                {t('recCard')}
+              </button>
+            )}
+            {onInsertImage && (
+              <button onClick={handleInsert} disabled={busy} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50">
+                <LayoutGrid size={14} />
+                {t('recInsertBoard')}
+              </button>
+            )}
+            <button onClick={onReopen} className="ms-auto rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline">
+              {t('recReopen')}
+            </button>
+          </div>
         </div>
       </div>
 
