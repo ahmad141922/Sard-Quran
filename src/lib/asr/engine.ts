@@ -53,9 +53,9 @@ export interface AsrEngine {
    * The bytes `prepare` would download, or null when the model is already on
    * the device.
    *
-   * The screen that asks before a 70 MB download reads this. Absent on an
-   * engine whose model arrives some other way (the Android plugin's is placed
-   * on the device), and then nothing is asked.
+   * The screen that asks before a 70 MB download reads this — in the browser
+   * and in the Android app alike. Absent on an engine whose model arrives some
+   * other way, and then nothing is asked.
    */
   needsDownload?(): Promise<number | null>;
   start(): Promise<boolean>;

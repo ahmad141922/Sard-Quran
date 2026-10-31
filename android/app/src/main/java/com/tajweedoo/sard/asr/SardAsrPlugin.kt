@@ -46,6 +46,8 @@ import com.k2fsa.sherpa.onnx.OnlineStream
 import com.k2fsa.sherpa.onnx.OnlineZipformer2CtcModelConfig
 import org.json.JSONObject
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -66,7 +68,16 @@ class SardAsrPlugin : Plugin() {
         private const val SAMPLE_RATE = 16000
         /** Same as the browser engine's — see `finish`. */
         private const val TAIL_PADDING_SECONDS = 0.8f
-        private const val MODEL_NAME = "zipformer_p_arabic_v3.int8.onnx"
+        /** The weights the web engine also runs, fetched from the bucket on consent. */
+        private const val MODEL_NAME = "zipformer_p_arabic_v3.1.int8.onnx"
+        /**
+         * The earlier weights, side-loaded onto test devices by hand before the
+         * app could fetch any. Same tokens and the same graph; kept in use where
+         * they are already present, so such a device asks for nothing.
+         */
+        private const val LEGACY_MODEL_NAME = "zipformer_p_arabic_v3.int8.onnx"
+        /** Anything smaller is a cut-off download or an error page, not the model. */
+        private const val MIN_MODEL_BYTES = 50L * 1024 * 1024
         private const val TOKENS_NAME = "tokens.txt"
 
         /**
@@ -142,8 +153,13 @@ class SardAsrPlugin : Plugin() {
     private var clipLength = 0
     private var player: AudioTrack? = null
 
-    /** Where the weights live once they are on the device. */
-    private fun modelFile(): File = File(File(context.filesDir, "asr"), MODEL_NAME)
+    /** Where the weights live once they are on the device — or will, once fetched. */
+    private fun modelFile(): File {
+        val dir = File(context.filesDir, "asr")
+        val current = File(dir, MODEL_NAME)
+        val legacy = File(dir, LEGACY_MODEL_NAME)
+        return if (!current.exists() && legacy.exists()) legacy else current
+    }
 
     /**
      * The symbol table, on the filesystem.
@@ -171,26 +187,32 @@ class SardAsrPlugin : Plugin() {
     fun available(call: PluginCall) {
         val result = JSObject()
         // Reported as one boolean on purpose. The screen does not explain why
-        // it cannot run — it is simply not drawn.
-        result.put("available", libraryPresent && modelFile().exists())
+        // it cannot run — it is simply not drawn. The weights are not part of
+        // the answer: `prepare` fetches them, after `hasModel` has let the
+        // screen ask the reciter first.
+        result.put("available", libraryPresent)
         call.resolve(result)
+    }
+
+    /** Whether the weights are already on the device — the screen asks before a download. */
+    @PluginMethod
+    fun hasModel(call: PluginCall) {
+        call.resolve(JSObject().apply { put("present", modelFile().exists()) })
     }
 
     /**
      * Makes sure the model is on the device and the recogniser is built.
      *
-     * The weights are **not** fetched here yet: they are 69 MB and the screen
-     * that says so before it starts does not exist. Until it does, `prepare`
-     * succeeds only when the file is already present, and the feature reports
-     * itself unavailable otherwise. A silent 69 MB download because somebody
-     * opened a page is exactly what must not happen.
+     * The weights are fetched from `url` when they are missing — 70 MB, so this
+     * is only ever called after the reciter agreed on a screen that said so
+     * (`needsDownload` in `native-engine.ts`). The microphone is asked for
+     * first: a download for a feature the reciter then refuses the microphone
+     * to would be 70 MB for nothing.
      */
     @PluginMethod
     fun prepare(call: PluginCall) {
-        val result = JSObject()
-        if (!libraryPresent || !modelFile().exists()) {
-            result.put("ready", false)
-            call.resolve(result)
+        if (!libraryPresent) {
+            call.resolve(JSObject().apply { put("ready", false) })
             return
         }
         if (!hasMicPermission()) {
@@ -198,7 +220,7 @@ class SardAsrPlugin : Plugin() {
             return
         }
         work.execute {
-            val ready = build()
+            val ready = ensureModel(call) && build()
             call.resolve(JSObject().apply { put("ready", ready) })
         }
     }
@@ -206,8 +228,65 @@ class SardAsrPlugin : Plugin() {
     @PermissionCallback
     private fun afterMicPermission(call: PluginCall) {
         work.execute {
-            val ready = hasMicPermission() && build()
+            val ready = hasMicPermission() && ensureModel(call) && build()
             call.resolve(JSObject().apply { put("ready", ready) })
+        }
+    }
+
+    /**
+     * Fetches the weights if they are not here, reporting progress as it goes.
+     *
+     * Written to a `.part` file and renamed only once whole, so a download cut
+     * off half way is never taken for the model on the next launch.
+     */
+    private fun ensureModel(call: PluginCall): Boolean {
+        if (modelFile().exists()) return true
+        val url = call.getString("url") ?: return false
+        val dest = File(File(context.filesDir, "asr"), MODEL_NAME)
+        dest.parentFile?.mkdirs()
+        val part = File(dest.parentFile, "$MODEL_NAME.part")
+        return try {
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 20_000
+                readTimeout = 30_000
+            }
+            try {
+                if (conn.responseCode !in 200..299) return false
+                val total = conn.contentLengthLong
+                var done = 0L
+                var lastPercent = -1
+                conn.inputStream.use { input ->
+                    part.outputStream().use { output ->
+                        val buffer = ByteArray(64 * 1024)
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n < 0) break
+                            output.write(buffer, 0, n)
+                            done += n
+                            if (total > 0) {
+                                val percent = (done * 100 / total).toInt()
+                                if (percent != lastPercent) {
+                                    lastPercent = percent
+                                    notifyListeners("downloadProgress", JSObject().apply {
+                                        put("fraction", done.toDouble() / total)
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+                if ((total > 0 && done != total) || done < MIN_MODEL_BYTES) {
+                    part.delete()
+                    false
+                } else {
+                    part.renameTo(dest)
+                }
+            } finally {
+                conn.disconnect()
+            }
+        } catch (_: Throwable) {
+            part.delete()
+            false
         }
     }
 
