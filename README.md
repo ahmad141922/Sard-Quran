@@ -58,4 +58,4 @@ npx wrangler pages deploy dist-deploy --project-name=sard-tajweedoo
 ## الجوّال
 
 `npm run android:build` ثم `cd android && ./gradlew assembleDebug` — انظر `docs/android.md` و`docs/ios.md`.
-نموذج ASR (`zipformer_p_arabic_v3.int8.onnx`) لا يُحزَم ويُحمَّل جانبيًا على الجهاز.
+نموذج ASR (`zipformer_p_arabic_v3.1.int8.onnx`، ٧٠ م.ب) لا يُحزَم: ينزّله التطبيق من دلو R2 بعد موافقة القارئ، كما في المتصفّح.

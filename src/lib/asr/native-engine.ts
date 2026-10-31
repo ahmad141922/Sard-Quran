@@ -3,7 +3,7 @@
  *
  * This is the only file in `asr/` that knows a native plugin exists. Above it
  * everything is pure and tested against hand-written examples; below it is a
- * 24 MB library, a 69 MB model and a microphone. `install` is called once at
+ * 24 MB library, a 70 MB model fetched on consent, and a microphone. `install` is called once at
  * boot inside the Android shell, and nowhere else — on the web `asrEngine()`
  * keeps returning `nullEngine()` and the feature is simply absent.
  *
@@ -20,6 +20,7 @@
 import { registerPlugin } from '@capacitor/core';
 
 import { setAsrEngine, type AsrEngine, type RecognisedAudio } from './engine';
+import { MODEL_BYTES, modelUrl } from './web-engine';
 import type { HeardPhoneme } from './align';
 
 interface HeardFromPlugin {
@@ -36,10 +37,12 @@ interface HeardFromPlugin {
 }
 
 interface SardAsr {
-  /** Whether this device has the library, the model and a microphone. */
+  /** Whether this build carries the recogniser's library. */
   available(): Promise<{ available: boolean }>;
-  /** Fetches the model if it is not on the device. Reports its own progress. */
-  prepare(): Promise<{ ready: boolean }>;
+  /** Whether the weights are on the device already. */
+  hasModel(): Promise<{ present: boolean }>;
+  /** Fetches the model from `url` if it is not on the device. Reports its own progress. */
+  prepare(options: { url: string }): Promise<{ ready: boolean }>;
   start(): Promise<{ started: boolean }>;
   stop(): Promise<{ phonemes: HeardFromPlugin[]; durationMs: number; canPlay?: boolean }>;
   cancel(): Promise<void>;
@@ -86,6 +89,8 @@ export function readPhonemes(raw: HeardFromPlugin[]): HeardPhoneme[] | null {
  * of it», which the interface already knows how to say.
  */
 const PREPARE_TIMEOUT_MS = 120_000;
+/** Seventy megabytes on a slow line — long, but still an end. */
+const DOWNLOAD_TIMEOUT_MS = 30 * 60_000;
 const STOP_TIMEOUT_MS = 30_000;
 /** Short: a poll that has not answered by now is one the next poll replaces. */
 const PARTIAL_TIMEOUT_MS = 4_000;
@@ -109,12 +114,27 @@ export function nativeEngine(): AsrEngine {
       return available;
     },
 
+    /*
+     * The same question the browser engine asks, so the same screen asks it:
+     * the weights are a 70 MB download from the bucket the web engine uses,
+     * fetched by the app itself once the reciter agrees.
+     */
+    async needsDownload() {
+      const { present } = await plugin.hasModel();
+      return present ? null : MODEL_BYTES;
+    },
+
     async prepare(onProgress) {
+      const present = await plugin.hasModel().then(r => r.present, () => false);
       const listener = onProgress
         ? await plugin.addListener('downloadProgress', ({ fraction }) => onProgress(fraction))
         : null;
       try {
-        return await within(plugin.prepare().then(r => r.ready), PREPARE_TIMEOUT_MS, false);
+        return await within(
+          plugin.prepare({ url: modelUrl() }).then(r => r.ready),
+          present ? PREPARE_TIMEOUT_MS : DOWNLOAD_TIMEOUT_MS,
+          false,
+        );
       } finally {
         await listener?.remove();
       }
