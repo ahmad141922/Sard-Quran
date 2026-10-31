@@ -321,6 +321,25 @@ export async function ensureTeacherRow(): Promise<void> {
   } catch { /* the next visit repairs it */ }
 }
 
+/**
+ * The signed-in teacher's name, for the setup form — or null for nobody, or
+ * for a participant's anonymous phone, which has no name of its own here.
+ */
+export async function accountName(): Promise<string | null> {
+  try {
+    const { data } = await sardSupabase.auth.getUser();
+    const user = data?.user;
+    if (!user || (user as { is_anonymous?: boolean }).is_anonymous) return null;
+    const { data: row } = await sardSupabase
+      .from('sard_teachers').select('name').eq('id', user.id).maybeSingle();
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const name = String(row?.name || meta.name || meta.full_name || '').trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
 export interface Enrolment {
   studentId: string;
   studentName: string;

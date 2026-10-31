@@ -9,18 +9,12 @@ import {
   type GoalKind, type RecitationSession, type SessionMode,
 } from '@/lib/recitation-session';
 import { wizardProfile } from '@/lib/wizard-profile';
-import {
-  contactForName, recentInstructorNames, recentStudentNames, sessionsForStudent,
-} from '@/lib/recitation-store';
-import {
-  applyDialCode, countryByCode, countryOfNumber, isPlausibleWhatsapp, normalizeWhatsapp,
-} from '@/lib/countries';
+import { recentInstructorNames, recentStudentNames, sessionsForStudent } from '@/lib/recitation-store';
 import { mushafName } from '@/lib/mushaf/registry';
 import { useMushaf } from '@/lib/mushaf/MushafProvider';
 import { useMushafPageIndex } from '@/lib/mushaf/page-index';
 import { positionFromAnchor, positionInEdition } from '@/lib/mushaf/position';
 import { canonicalBookFromQuranIndex, editionBook } from '@/lib/mushaf/text-pages';
-import CountryPicker from './CountryPicker';
 import MushafPicker from './MushafPicker';
 import { positionLabel } from './recitation-shared';
 
@@ -38,6 +32,15 @@ interface Props {
   roster?: { id: string; name: string }[];
   /** What the picker is called. The caller owns the words, as it owns the list. */
   rosterLabel?: string;
+  /**
+   * Who this device belongs to, when an account says so: a signed-in teacher
+   * (the listener) or a participant's phone that joined one (the reciter).
+   *
+   * That side's name comes from the account and is not typed. A form asking
+   * a signed-in person who they are reads as not knowing them — and asking
+   * for a phone number on top of it reads worse.
+   */
+  account?: { name: string; side: 'reciter' | 'listener' };
 }
 
 const GOALS: {
@@ -55,24 +58,20 @@ const GOALS: {
 ];
 
 const MUSHAF_KEY = 'tajweedoo:mushaf-edition';
-/** Asked at the first majlis, offered back at every one after it. */
+/**
+ * Which side of the majlis this device usually holds. The key is the one the
+ * form once kept a phone number under too; only the side is read now.
+ */
 const CONTACT_KEY = 'tajweedoo:contact';
 
-function storedContact(): { whatsapp: string; countryCode: string; role: 'reciter' | 'listener' } {
+function storedRole(): 'reciter' | 'listener' {
   try {
     const raw = localStorage.getItem(CONTACT_KEY);
-    const saved = raw ? JSON.parse(raw) : null;
-    return {
-      whatsapp: saved?.whatsapp ?? '',
-      // Older devices stored the country's Arabic name; the code is derived
-      // from the number on the next render either way, so a miss costs nothing.
-      countryCode: saved?.countryCode ?? '',
-      role: saved?.role === 'reciter' ? 'reciter' : 'listener',
-    };
-  } catch { return { whatsapp: '', countryCode: '', role: 'listener' }; }
+    return raw && JSON.parse(raw)?.role === 'reciter' ? 'reciter' : 'listener';
+  } catch { return 'listener'; }
 }
 
-const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster, rosterLabel }) => {
+const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster, rosterLabel, account }) => {
   const { t, dir, lang } = useI18n();
   const [index, setIndex] = useState<QuranIndex | null>(null);
   /*
@@ -92,7 +91,19 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
   const [rosterStudentId, setRosterStudentId] = useState<string | undefined>(undefined);
   const [instructor, setInstructor] = useState('');
   /** Which side of the majlis is holding the device. Remembered: it rarely changes. */
-  const [role, setRole] = useState<'reciter' | 'listener'>(() => storedContact().role);
+  const [role, setRole] = useState<'reciter' | 'listener'>(() => account?.side ?? storedRole());
+  /** The account's own name, when there is one with a name to give. */
+  const mine = account?.name.trim() || '';
+  /*
+   * The side the account holder is on is named from the account. Followed
+   * rather than set once: the account can arrive after the form opens, and a
+   * teacher who switches to reciting is still the same person.
+   */
+  useEffect(() => {
+    if (!mine) return;
+    if (role === 'listener') setInstructor(mine);
+    else { setName(mine); setRosterStudentId(undefined); }
+  }, [mine, role]);
   /**
    * Whether anyone is listening.
    *
@@ -103,18 +114,6 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
    */
   const [mode, setMode] = useState<SessionMode>('majlis');
   const alone = mode === 'solo';
-  const [studentWhatsapp, setStudentWhatsapp] = useState(
-    () => (storedContact().role === 'reciter' ? storedContact().whatsapp : ''),
-  );
-  const [studentCountryCode, setStudentCountryCode] = useState(
-    () => (storedContact().role === 'reciter' ? storedContact().countryCode : ''),
-  );
-  const [instructorWhatsapp, setInstructorWhatsapp] = useState(
-    () => (storedContact().role === 'listener' ? storedContact().whatsapp : ''),
-  );
-  const [instructorCountryCode, setInstructorCountryCode] = useState(
-    () => (storedContact().role === 'listener' ? storedContact().countryCode : ''),
-  );
 
   const [recent, setRecent] = useState<string[]>([]);
   const [recentInstructors, setRecentInstructors] = useState<string[]>([]);
@@ -219,15 +218,10 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
    * start.
    */
   const paginationReady = !!index && index.mushaf === edition.textPaginationId;
-  // Both sides in full, or the majlis does not start: a record naming one of
-  // the two is half a record, and half a person cannot be reached.
-  // Both sides in full, or the majlis does not start. Reciting alone there is
-  // no second side to name and nobody to reach afterwards, so the whole gate
-  // lifts rather than being satisfied with a placeholder.
-  const contactsReady = alone
-    || (isPlausibleWhatsapp(studentWhatsapp) && isPlausibleWhatsapp(instructorWhatsapp));
+  // Both sides named, or the majlis does not start: the certificate names
+  // them both. Reciting alone there is no second side to name.
   const canStart = paginationReady && !!start && !!end && !rangeBackwards
-    && name.trim().length > 0 && (alone || instructor.trim().length > 0) && contactsReady;
+    && name.trim().length > 0 && (alone || instructor.trim().length > 0);
 
   /**
    * What is still standing between this form and a majlis, named.
@@ -240,56 +234,6 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
   const missing: string[] = [];
   if (!name.trim()) missing.push(t('recReciterName'));
   if (!alone && !instructor.trim()) missing.push(t('recListenerName'));
-  if (!alone && !isPlausibleWhatsapp(studentWhatsapp)) missing.push(t('recReciterWhatsapp'));
-  if (!alone && !isPlausibleWhatsapp(instructorWhatsapp)) missing.push(t('recListenerWhatsapp'));
-
-  /**
-   * The two fields lead each other, and the number leads when both speak.
-   *
-   * Choosing a country writes its code into the number (below, in the picker's
-   * handler). Typing a number that carries a code selects the country here.
-   * The number wins because it is the thing being sent a message: a majlis in
-   * Riyadh typed as +966 is in Riyadh, whatever the list still shows. And a
-   * number retyped without a code clears the country rather than leaving the
-   * previous one standing under it.
-   */
-  useEffect(() => {
-    const found = countryOfNumber(studentWhatsapp);
-    setStudentCountryCode(current => (found ? found.code : (studentWhatsapp.trim() ? current : '')));
-  }, [studentWhatsapp]);
-
-  useEffect(() => {
-    const found = countryOfNumber(instructorWhatsapp);
-    setInstructorCountryCode(current => (found ? found.code : (instructorWhatsapp.trim() ? current : '')));
-  }, [instructorWhatsapp]);
-
-  /**
-   * A name this device has seen before brings its own number with it, so a
-   * halaqa of twenty types each number once in its life. It never writes over
-   * something already typed into this form.
-   */
-  useEffect(() => {
-    let alive = true;
-    const at = setTimeout(() => {
-      contactForName(name, 'student').then(found => {
-        if (!alive || !found) return;
-        // The country follows the number by itself, so only the number is filled.
-        setStudentWhatsapp(cur => cur || found.whatsapp);
-      });
-    }, 350);
-    return () => { alive = false; clearTimeout(at); };
-  }, [name]);
-
-  useEffect(() => {
-    let alive = true;
-    const at = setTimeout(() => {
-      contactForName(instructor, 'instructor').then(found => {
-        if (!alive || !found) return;
-        setInstructorWhatsapp(cur => cur || found.whatsapp);
-      });
-    }, 350);
-    return () => { alive = false; clearTimeout(at); };
-  }, [instructor]);
 
   /**
    * Where this reciter stopped last time, kept as an anchor.
@@ -339,21 +283,10 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
   const handleStart = useCallback(() => {
     if (!index || !start || !end || !name.trim()) return;
     if (!alone && !instructor.trim()) return;
-    if (!alone && (!isPlausibleWhatsapp(studentWhatsapp) || !isPlausibleWhatsapp(instructorWhatsapp))) return;
-    const studentNumber = normalizeWhatsapp(studentWhatsapp);
-    const instructorNumber = normalizeWhatsapp(instructorWhatsapp);
-    const studentWhere = countryByCode(studentCountryCode)?.nameAr
-      || countryOfNumber(studentWhatsapp)?.nameAr || '';
-    const instructorWhere = countryByCode(instructorCountryCode)?.nameAr
-      || countryOfNumber(instructorWhatsapp)?.nameAr || '';
-    // Only the device owner's own side is remembered here; the other side
-    // belongs to whoever was on it, and is looked up by name next time.
+    // Only which side this device held is remembered; names come from the
+    // account, the roster, or this device's own history.
     if (!alone) {
-      try {
-        localStorage.setItem(CONTACT_KEY, JSON.stringify(role === 'reciter'
-          ? { whatsapp: studentNumber, countryCode: studentCountryCode, role }
-          : { whatsapp: instructorNumber, countryCode: instructorCountryCode, role }));
-      } catch { /* private mode — asked again next time, and that is all */ }
+      try { localStorage.setItem(CONTACT_KEY, JSON.stringify({ role })); } catch { /* private mode */ }
     }
     // Reciting alone, the fields that describe a second person are left off
     // entirely rather than written empty: there was no listener, and a record
@@ -362,12 +295,9 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
       ? { studentName: name, rosterStudentId, mode, goalKind: goal, start, end, index }
       : {
         studentName: name, rosterStudentId, instructorName: instructor, operatorRole: role,
-        studentWhatsapp: studentNumber, studentCountry: studentWhere,
-        instructorWhatsapp: instructorNumber, instructorCountry: instructorWhere,
         goalKind: goal, start, end, index,
       }));
-  }, [index, start, end, name, instructor, alone, mode, studentWhatsapp, studentCountryCode,
-      instructorWhatsapp, instructorCountryCode, role, goal, rosterStudentId, onStart]);
+  }, [index, start, end, name, instructor, alone, mode, role, goal, rosterStudentId, onStart]);
 
   if (!open) return null;
 
@@ -405,7 +335,7 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
             Who is listening.
 
             First, because it decides what the rest of this form even asks
-            for: a majlis needs both sides named and reachable, and reciting
+            for: a majlis needs both sides named, and reciting
             alone needs neither. The majlis leads and is the default — it is
             the one that ends in a certificate, and the one that must never be
             started in the wrong mode by accident.
@@ -467,17 +397,12 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
           </>)}
 
           {/*
-            Each side in full: a name, a number, a country.
+            Each side by name, and nothing else.
 
-            A majlis is two people, and a record that names one of them is half
-            a record. The country is not a third question — it is read off the
-            dialling code and only waits to be corrected, because +1 alone
-            cannot tell the United States from Canada.
-
-            Whichever side is holding the device has its contact remembered
-            between sessions; the other side is filled in from that person's
-            last majlis, so a halaqa of twenty students types each number once
-            in its life.
+            A majlis is two people and the certificate names them both. No
+            phone number and no country: the tool sends nobody anything, and a
+            form that asks for a number it never uses is the shape of a scam.
+            Whichever side has an account is named from it.
           */}
           {/*
             A teacher's phone runs a halaqa one reciter after another, so the
@@ -486,7 +411,7 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
             view of them. Absent without a roster; the name field below is
             unchanged either way and still wins if it is typed into.
           */}
-          {roster && roster.length > 0 && (
+          {roster && roster.length > 0 && !(mine && role === 'reciter') && (
             <label className="mb-3 block text-xs">
               <span className="mb-1 block font-bold text-muted-foreground">{rosterLabel}</span>
               <select
@@ -508,25 +433,12 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
             idPrefix="rec-student"
             legend={t('recReciter')}
             nameLabel={t('recReciterName')}
-            whatsappLabel={t('recReciterWhatsapp')}
-            countryLabel={t('recReciterCountry')}
             isYou={role === 'reciter'}
             names={recent}
             name={name}
             onName={value => { setName(value); setRosterStudentId(undefined); }}
-            whatsapp={studentWhatsapp}
-            onWhatsapp={setStudentWhatsapp}
-            countryCode={studentCountryCode}
-            onCountryCode={code => {
-              setStudentCountryCode(code);
-              const dial = countryByCode(code)?.dial;
-              if (dial) setStudentWhatsapp(current => applyDialCode(current, dial));
-            }}
             namePlaceholder={t('recStudentPlaceholder')}
-            // Reciting alone, the reciter is the only person in the record
-            // and there is nobody to reach afterwards — so the name stays and
-            // the ways of contacting them go.
-            nameOnly={alone}
+            fromAccount={!!mine && role === 'reciter'}
           />
 
           {!alone && (<>
@@ -535,21 +447,12 @@ const RecitationSetupModal: React.FC<Props> = ({ open, onClose, onStart, roster,
             idPrefix="rec-instructor"
             legend={t('recListener')}
             nameLabel={t('recListenerName')}
-            whatsappLabel={t('recListenerWhatsapp')}
-            countryLabel={t('recListenerCountry')}
             isYou={role === 'listener'}
             names={recentInstructors}
             name={instructor}
             onName={setInstructor}
-            whatsapp={instructorWhatsapp}
-            onWhatsapp={setInstructorWhatsapp}
-            countryCode={instructorCountryCode}
-            onCountryCode={code => {
-              setInstructorCountryCode(code);
-              const dial = countryByCode(code)?.dial;
-              if (dial) setInstructorWhatsapp(current => applyDialCode(current, dial));
-            }}
             namePlaceholder={role === 'listener' ? t('recYourName') : t('recWhomYouReciteTo')}
+            fromAccount={!!mine && role === 'listener'}
           />
 
           </>)}
@@ -722,30 +625,11 @@ const Party: React.FC<{
   names: string[];
   name: string;
   onName: (value: string) => void;
-  whatsapp: string;
-  onWhatsapp: (value: string) => void;
-  countryCode: string;
-  onCountryCode: (code: string) => void;
   namePlaceholder: string;
-  /**
-   * Ask for the name and nothing else.
-   *
-   * Reciting alone there is one person in the record and nobody to reach
-   * afterwards, so the contact fields are not merely optional — they have no
-   * subject. The name stays because the report and the history are still
-   * about somebody.
-   */
-  nameOnly?: boolean;
-  /* Written out rather than composed from `legend`: "واتساب القارئ" is one
-     phrase in Arabic and "Reciter's WhatsApp" is another in English, and glueing
-     a preposition between two translated halves produces neither. */
   nameLabel: string;
-  whatsappLabel: string;
-  countryLabel: string;
-}> = ({
-  idPrefix, legend, isYou, names, name, onName, whatsapp, onWhatsapp, countryCode, onCountryCode,
-  namePlaceholder, nameLabel, whatsappLabel, countryLabel, nameOnly,
-}) => {
+  /** Named by the signed-in account: shown, not typed. */
+  fromAccount?: boolean;
+}> = ({ idPrefix, legend, isYou, names, name, onName, namePlaceholder, nameLabel, fromAccount }) => {
   const { t } = useI18n();
   return (
   <fieldset className="rounded-xl border border-border bg-accent/20 p-3">
@@ -754,58 +638,24 @@ const Party: React.FC<{
       {isYou && <span className="ms-1 text-emerald-700 dark:text-emerald-400">({t('recYouWord')})</span>}
     </legend>
 
-    <div className="space-y-2.5">
-      <div>
-        <input
-          id={idPrefix}
-          list={`${idPrefix}-recent`}
-          value={name}
-          onChange={e => onName(e.target.value)}
-          placeholder={namePlaceholder}
-          autoComplete="off"
-          aria-label={nameLabel}
-          className={FIELD}
-        />
-        <datalist id={`${idPrefix}-recent`}>
-          {names.map(n => <option key={n} value={n} />)}
-        </datalist>
-      </div>
-
-      {!nameOnly && (
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <div>
-          <input
-            id={`${idPrefix}-whatsapp`}
-            type="tel"
-            inputMode="tel"
-            dir="ltr"
-            value={whatsapp}
-            onChange={e => onWhatsapp(e.target.value)}
-            placeholder="+20 100 123 4567"
-            autoComplete="tel"
-            aria-label={whatsappLabel}
-            className={`${FIELD} text-start`}
-          />
-          {whatsapp.trim() && !isPlausibleWhatsapp(whatsapp) && (
-            <p className="mt-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
-              {t('recWhatsappHint')}
-            </p>
-          )}
-        </div>
-{/*
-          Searchable, not a plain list. Choosing a country writes its code into
-          the number beside it, so only the subscriber digits are typed — and a
-          number that already carries a code selects the country back here.
-        */}
-        <CountryPicker
-          id={`${idPrefix}-country`}
-          label={countryLabel}
-          value={countryCode}
-          onChange={onCountryCode}
-        />
-      </div>
-      )}
-    </div>
+    <input
+      id={idPrefix}
+      list={`${idPrefix}-recent`}
+      value={name}
+      onChange={e => onName(e.target.value)}
+      readOnly={fromAccount}
+      data-from-account={fromAccount ? '' : undefined}
+      placeholder={namePlaceholder}
+      autoComplete="off"
+      aria-label={nameLabel}
+      className={`${FIELD} ${fromAccount ? 'cursor-default opacity-80' : ''}`}
+    />
+    <datalist id={`${idPrefix}-recent`}>
+      {names.map(n => <option key={n} value={n} />)}
+    </datalist>
+    {fromAccount && (
+      <p className="mt-1 text-[11px] text-muted-foreground">{t('recFromAccount')}</p>
+    )}
   </fieldset>
   );
 };
