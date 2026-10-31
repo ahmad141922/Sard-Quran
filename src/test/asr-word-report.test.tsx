@@ -94,7 +94,9 @@ async function recite(onAt: (r: Report) => void) {
 }
 
 // The first-use explainer is its own test (asr-solo-panel); here it has been read.
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); localStorage.setItem('sard:asr-intro-v1', '1'); });
+beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); localStorage.setItem('sard:asr-intro-v1', '1');
+  // These start from following switched off, and switch it on themselves.
+  localStorage.setItem('sard:asr-follow', 'off'); });
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); vi.useRealTimers(); });
 
 describe('before anybody is being followed', () => {

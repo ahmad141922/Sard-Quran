@@ -292,20 +292,17 @@ const RecitationOverlay: React.FC<Props> = ({ session, index, onChange, onMinimi
   const facsimile = useMemo<{ mushaf: MushafDefinition; page: number } | null>(() => {
     if (printedPage === null) return null;
     /*
-     * The plate is a picture. It carries a polygon per verse — which is why a
-     * verse can be lit on it — and nothing per word, so a word cannot be. While
-     * somebody is being followed, the page is set from the same text with the
-     * print's own line breaks instead, where each word is its own element.
-     *
-     * It is not a different muṣḥaf: same words, same lines, same page. It is
-     * switched rather than offered because a reciter who has turned following
-     * on has already asked for this, and a second control to make the first one
-     * work is a control that should not exist.
+     * The plate stays the plate while somebody is being followed. It carries a
+     * polygon per verse and nothing per word, so on it the following moves
+     * verse by verse — the marker and the uncovering — rather than word by
+     * word. Swapping it for the text set in the print's lines, as this once
+     * did, changed the page under a reciter who had only asked to be
+     * followed; the word-by-word view is still one choice away, in the menu.
      */
-    if (heard.listening || wordView) return null;
+    if (wordView) return null;
     return hasPageAsset(activeMushaf, printedPage) ? { mushaf: activeMushaf, page: printedPage } : null;
     // coverageVersion re-runs this once the manifest lands.
-  }, [activeMushaf, printedPage, coverageVersion, heard.listening, wordView]);
+  }, [activeMushaf, printedPage, coverageVersion, wordView]);
 
   /**
    * Which surah the page on screen closes, if it closes one.

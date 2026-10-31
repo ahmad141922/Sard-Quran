@@ -80,7 +80,9 @@ const mount = (onFollow?: (id: number) => void) => render(
 );
 
 // The first-use explainer is its own test (asr-solo-panel); here it has been read.
-beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); localStorage.setItem('sard:asr-intro-v1', '1'); });
+beforeEach(() => { resetQuranPhonemesCache(); setAsrEngine(nullEngine()); localStorage.setItem('sard:asr-intro-v1', '1');
+  // These start from following switched off, and switch it on themselves.
+  localStorage.setItem('sard:asr-follow', 'off'); });
 afterEach(() => { cleanup(); setAsrEngine(nullEngine()); vi.useRealTimers(); });
 
 describe('whether it is offered at all', () => {
@@ -108,10 +110,19 @@ describe('whether it is offered at all', () => {
 
 describe('whether it is on', () => {
   /**
-   * Off until chosen. A marker that moves on its own is something a reciter
-   * should have decided, not something they discover happening to them.
+   * On by default: it is what uncovers the page as the reciter goes, and a
+   * fresh install that kept it off looked like the feature had broken.
    */
-  it('starts off', async () => {
+  it('starts on, where nothing was chosen', async () => {
+    localStorage.removeItem('sard:asr-follow');
+    setAsrEngine(engine(true));
+    const { container } = mount(vi.fn());
+    await waitFor(() => expect(container.querySelector('[data-follow-toggle]')).toBeTruthy());
+    expect(container.querySelector('[data-follow-toggle]')!.getAttribute('aria-pressed'))
+      .toBe('true');
+  });
+
+  it('stays off once switched off', async () => {
     setAsrEngine(engine(true));
     const { container } = mount(vi.fn());
     await waitFor(() => expect(container.querySelector('[data-follow-toggle]')).toBeTruthy());

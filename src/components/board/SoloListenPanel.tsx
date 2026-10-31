@@ -76,11 +76,19 @@ export const SoloListenPanel: React.FC<Props> = ({
 }) => {
   const { t } = useI18n();
   /*
-   * Following is off until it is switched on, and the switch is remembered for
-   * the session only. A marker that moves on its own is something a reciter
-   * should have chosen, not something they discover happening to them.
+   * Following is on unless it was switched off, and the switch is remembered
+   * on this device. It is what uncovers the page as the reciter goes — the
+   * thing a reciter who hid the page and pressed record is waiting for — and
+   * a fresh install that kept it off looked like the feature had broken.
    */
-  const [followOn, setFollowOn] = useState(false);
+  const [followOn, setFollowOnState] = useState(() => {
+    try { return localStorage.getItem(FOLLOW_KEY) !== 'off'; } catch { return true; }
+  });
+  const setFollowOn = (update: (v: boolean) => boolean) => setFollowOnState(v => {
+    const next = update(v);
+    try { localStorage.setItem(FOLLOW_KEY, next ? 'on' : 'off'); } catch { /* private mode */ }
+    return next;
+  });
   /** The first-use explainer is open — see `begin`. */
   const [intro, setIntro] = useState(false);
   const asr = useAsrReview(index, anchorNow, followOn ? onFollow : undefined);
@@ -329,3 +337,6 @@ export const SoloListenPanel: React.FC<Props> = ({
 };
 
 export default SoloListenPanel;
+
+/** Whether the marker follows the reciter, remembered per device. */
+const FOLLOW_KEY = 'sard:asr-follow';
