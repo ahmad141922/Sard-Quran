@@ -110,13 +110,26 @@ export const RecitationReportSheet = React.forwardRef<HTMLDivElement, Props>(({ 
         </div>
       )}
 
+      {/* The three numbers a parent looks for first, before any detail. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
+        {[
+          { value: formatDuration(active, lang), label: t('recListeningTime') },
+          { value: String(volume.ayahs), label: t('recAyahsUnit') },
+          { value: String(counts.hesitation + counts.memory + counts.tajweed + (counts.shakl ?? 0)), label: t('recNotesUnit') },
+        ].map(tile => (
+          <div key={tile.label} style={{ border: `1px solid ${SHEET_RULE}`, borderRadius: 10, padding: '8px 6px', textAlign: 'center' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.3 }}>{tile.value}</div>
+            <div style={{ fontSize: 11, color: SHEET_MUTED, marginTop: 2 }}>{tile.label}</div>
+          </div>
+        ))}
+      </div>
+
       <Row label={t('recRecited')} value={volumeLine} strong />
       <Row rtlValue label={`${t('recFrom')} — ${t('recTo')}`} value={`${startLabel} ← ${endLabel}`} />
       {/* Which book these numbers are in — two riwayat number verses
           differently, so a sheet that did not say would be unreadable. */}
       <Row label={t('recMushaf')} value={mushafLabel} />
-      {/* Two clocks confuse unless each says plainly what it counts. */}
-      <Row label={t('recListeningTime')} value={formatDuration(active, lang)} strong />
+      {/* The listening time is the first tile above; this is the span. */}
       <Row label={t('recFromTo')} value={`${clock(session.startedAt)} — ${clock(at)}`} />
       {showPaused && <Row label={t('recPausedTime')} value={formatDuration(paused, lang)} />}
 
@@ -142,7 +155,8 @@ export const RecitationReportSheet = React.forwardRef<HTMLDivElement, Props>(({ 
 
       <div style={{ height: 1, background: SHEET_RULE, margin: '14px 0' }} />
 
-      <Row label={t('recNotesPerPage')} value={perPage.toFixed(1)} />
+      {/* A rate over one or two pages is noise dressed as a figure. */}
+      {volume.pages >= 3 && <Row label={t('recNotesPerPage')} value={perPage.toFixed(1)} />}
       {pressure.items.length > 0 && (
         <>
           <Row rtlValue label={t('recNeedsReview')} value={pressure.items.map(p => p.name).join(' · ')} strong />
